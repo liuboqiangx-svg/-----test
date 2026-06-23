@@ -57,6 +57,7 @@ export async function maybeSendProactiveMessage(
 
   const result = await generateCharacterReply({
     userName,
+    characterId: character.id,
     characterName: character.display_name,
     characterProfile: character.speech_style,
     memories: [],

@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Send, Sparkles, Loader2, Mic, Image, Heart } from "lucide-react";
-import type { Message, CharacterProfile, CharacterState } from "@/types";
+import { Send, Sparkles, Loader2, Mic, Image, Heart, Zap } from "lucide-react";
+import type { Message, CharacterProfile, CharacterState, MoodType } from "@/types";
+import { MOOD_LABELS, MOOD_EMOJIS } from "@/types";
 
 interface ChatRoomProps {
   onStateChange?: (state: CharacterState) => void;
@@ -18,6 +19,8 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const [state, setState] = useState<CharacterState | null>(null);
   const [mockMode, setMockMode] = useState(true);
   const [showStickers, setShowStickers] = useState(false);
+  const [moodChanged, setMoodChanged] = useState(false);
+  const [lastMood, setLastMood] = useState<string>("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const deviceIdRef = useRef<string>("");
@@ -43,6 +46,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
       if (data.character) setCharacter(data.character);
       if (data.state) {
         setState(data.state);
+        setLastMood(data.state.mood);
         onStateChange?.(data.state);
       }
       setMockMode(data.mockMode);
@@ -93,6 +97,19 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
       const data = await res.json();
       if (data.userMessage && data.characterMessage) {
         setMessages((prev) => [...prev, data.userMessage, data.characterMessage]);
+
+        // 检查情绪是否变化
+        if (data.state && data.state.mood !== lastMood) {
+          setMoodChanged(true);
+          setLastMood(data.state.mood);
+          setTimeout(() => setMoodChanged(false), 2000);
+        }
+
+        // 更新状态
+        if (data.state) {
+          setState(data.state);
+          onStateChange?.(data.state);
+        }
       }
     } catch (error) {
       console.error("发送失败:", error);
@@ -111,14 +128,14 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     }
   };
 
-  // 心情显示
-  const moodEmoji: Record<string, string> = {
-    happy: "😊",
-    calm: "😌",
-    miss: "🥰",
-    lonely: "😢",
-    slight_jealous: "😤",
-    sleepy: "😴",
+  // 获取情绪标签
+  const getMoodLabel = (mood: MoodType): string => {
+    return MOOD_LABELS[mood] || mood;
+  };
+
+  // 获取情绪 Emoji
+  const getMoodEmoji = (mood: MoodType): string => {
+    return MOOD_EMOJIS[mood] || "😐";
   };
 
   // 贴纸快捷发送
@@ -152,8 +169,8 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
             </h1>
             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
               {state && (
-                <span>
-                  {moodEmoji[state.mood]} {getMoodText(state.mood)}
+                <span className="flex items-center gap-1">
+                  {getMoodEmoji(state.mood)} {getMoodLabel(state.mood)}
                 </span>
               )}
               {mockMode && (
@@ -164,15 +181,34 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
             </div>
           </div>
           {state && (
-            <div className="flex items-center gap-1 text-sm">
-              <Heart className="w-4 h-4 text-pink-500" />
-              <span className="text-pink-600 dark:text-pink-400 font-medium">
-                {state.intimacy}
-              </span>
+            <div className="flex flex-col items-end gap-1">
+              <div className="flex items-center gap-1 text-sm">
+                <Heart className="w-4 h-4 text-pink-500" />
+                <span className="text-pink-600 dark:text-pink-400 font-medium">
+                  {state.intimacy}
+                </span>
+              </div>
+              {/* 情绪强度指示 */}
+              {state.mood_intensity && (
+                <div className="w-16 h-1 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-pink-400 to-pink-600 rounded-full transition-all"
+                    style={{ width: `${state.mood_intensity}%` }}
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
       </header>
+
+      {/* 情绪变化提示 */}
+      {moodChanged && state && (
+        <div className="bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/30 dark:to-purple-900/30 px-4 py-2 text-center text-sm text-pink-600 dark:text-pink-400 animate-pulse flex items-center justify-center gap-2">
+          <Zap className="w-4 h-4" />
+          <span>情绪发生了变化：{getMoodEmoji(state.mood)} {getMoodLabel(state.mood)}</span>
+        </div>
+      )}
 
       {/* 消息列表 */}
       <main className="flex-1 overflow-y-auto px-4 py-6">
@@ -235,7 +271,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
               <div className="bg-white dark:bg-gray-700 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
                 <div className="flex items-center gap-2 text-gray-400">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">打字中...</span>
+                  <span>打字中...</span>
                 </div>
               </div>
             </div>
@@ -329,16 +365,4 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
       </footer>
     </div>
   );
-}
-
-function getMoodText(mood: string): string {
-  const map: Record<string, string> = {
-    happy: "开心",
-    calm: "平静",
-    miss: "想你",
-    lonely: "有点孤单",
-    slight_jealous: "小醋意",
-    sleepy: "困困的",
-  };
-  return map[mood] || mood;
 }

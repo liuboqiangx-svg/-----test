@@ -10,6 +10,7 @@ import { DEFAULT_CHARACTER } from "@/lib/character";
 import { generateCharacterReply, isMockMode } from "@/lib/llm";
 import { getMemoryPromptText } from "@/lib/memory";
 import { getCharacterState, updateCharacterState } from "@/lib/db";
+import { MoodType } from "@/types";
 
 // 确保数据库已初始化
 let initialized = false;
@@ -80,14 +81,15 @@ export async function POST(request: NextRequest) {
             Math.floor(Math.random() * DEFAULT_CHARACTER.nicknames_for_user.length)
           ];
 
-    // 生成角色回复
+    // 生成角色回复（接入情绪系统）
     const result = await generateCharacterReply({
       userName: userId,
+      characterId: charId,
       characterName: DEFAULT_CHARACTER.display_name,
       characterProfile: DEFAULT_CHARACTER.speech_style,
       memories: [],
       history,
-      currentMessage: content.trim() + memoryText,
+      currentMessage: content.trim(),
       mood: state?.mood || "calm",
       intimacy: state?.intimacy || 10,
       nickname,
@@ -102,10 +104,11 @@ export async function POST(request: NextRequest) {
       type: "text",
     });
 
-    // 更新角色状态
-    updateCharacterState(userId, charId, {
-      mood: (result.mood as "happy" | "calm" | "miss" | "lonely" | "slight_jealous" | "sleepy") || "calm",
+    // 更新角色状态（包含情绪强度）
+    const newState = updateCharacterState(userId, charId, {
+      mood: (result.mood as MoodType) || "calm",
       intimacy: Math.min(100, (state?.intimacy || 10) + DEFAULT_CHARACTER.intimacy_growth.reply),
+      mood_intensity: result.intensity,
       last_message_at: new Date().toISOString(),
       next_proactive_at: new Date(Date.now() + 1000 * 60 * 20).toISOString(),
     });
@@ -113,6 +116,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       userMessage: userMsg,
       characterMessage: charMsg,
+      state: newState,
+      moodChanged: result.moodChanged,
+      moodLabel: result.moodLabel,
+      moodEmoji: result.moodEmoji,
+      triggerType: result.triggerType,
+      triggerWord: result.triggerWord,
       mockMode: isMockMode(),
     });
   } catch (error) {
