@@ -26,10 +26,10 @@ import { createVoiceLogger, PerformanceTimer } from "../logger";
 /**
  * 火山引擎 TTS 默认配置
  */
-const DEFAULT_CONFIG: Partial<VoiceProviderConfig> = {
+const DEFAULT_CONFIG = {
   endpoint: "https://openspeech.bytedance.com/api/v3/tts/unidirectional",
   resourceId: "volc.service_type.10029",
-  timeout: 30000, // 30秒超时（语音合成通常较快）
+  timeout: 30000, // 30秒超时
 };
 
 /**
@@ -140,7 +140,7 @@ export class VolcanoVoiceProvider implements VoiceProvider {
   private async sendRequest(
     body: Record<string, unknown>,
     requestId: string,
-    timer: PerformanceTimer
+    _timer: PerformanceTimer
   ): Promise<Response> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
