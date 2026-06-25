@@ -25,3 +25,12 @@ export {
   type LightingSnippet,
   type CameraSnippet,
 } from "./registry";
+
+// 导出组装器
+export {
+  PromptAssembler,
+  assembleImagePrompt,
+  previewImagePrompt,
+  type AssemblePromptRequest,
+  type AssemblePromptResult,
+} from "../assembler";
