@@ -7,12 +7,24 @@ import { Send, Sparkles, Loader2, Mic, Image, Heart, Zap } from "lucide-react";
 import type { Message, CharacterProfile, CharacterState, MoodType } from "@/types";
 import { MOOD_LABELS, MOOD_EMOJIS } from "@/types";
 
+interface MessageWithImage {
+  id: string;
+  user_id: string;
+  character_id: string;
+  role: "user" | "character";
+  content: string;
+  type: "text" | "voice" | "image" | "sticker";
+  media_url?: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 interface ChatRoomProps {
   onStateChange?: (state: CharacterState) => void;
 }
 
 export default function ChatRoom({ onStateChange }: ChatRoomProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageWithImage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [character, setCharacter] = useState<CharacterProfile | null>(null);
@@ -21,6 +33,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const [showStickers, setShowStickers] = useState(false);
   const [moodChanged, setMoodChanged] = useState(false);
   const [lastMood, setLastMood] = useState<string>("");
+  const [generatingImage, setGeneratingImage] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const deviceIdRef = useRef<string>("");
@@ -138,6 +151,53 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     return MOOD_EMOJIS[mood] || "😐";
   };
 
+  // 测试图像生成
+  const testImageGeneration = async () => {
+    if (generatingImage) return;
+
+    // 可用的角色列表（暂时硬编码，后续可以从 API 获取）
+    const availableCharacters = ["lin-ye", "shen-mo", "shu-ting", "gu-ran"];
+    const testCharacterId = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+
+    setGeneratingImage(true);
+    try {
+      const res = await fetch("/api/image/character", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          characterId: testCharacterId,
+          emotion: state?.mood || "happy",
+          scene: "beach",
+          size: "2K",
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.data?.url) {
+        // 添加图片消息
+        const imageMsg: MessageWithImage = {
+          id: `img-${Date.now()}`,
+          user_id: "character",
+          character_id: testCharacterId,
+          role: "character",
+          content: "这是我的照片~",
+          type: "image",
+          media_url: data.data.url,
+          is_read: false,
+          created_at: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, imageMsg]);
+      } else {
+        console.error("图像生成失败:", data.error);
+        alert("图片生成失败: " + (data.error?.message || "未知错误"));
+      }
+    } catch (error) {
+      console.error("图像生成错误:", error);
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
   // 贴纸快捷发送
   const stickers = [
     { emoji: "🥰", label: "亲亲" },
@@ -240,6 +300,17 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
                     : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 rounded-bl-md shadow-sm"
                 }`}
               >
+                {/* 图片消息 */}
+                {msg.type === "image" && msg.media_url && (
+                  <div className="mb-2">
+                    <img
+                      src={msg.media_url}
+                      alt="生成的图片"
+                      className="rounded-lg max-w-full max-h-80 object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                )}
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 <p
                   className={`text-xs mt-1 opacity-70 ${
@@ -322,10 +393,16 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
               <Mic className="w-5 h-5" />
             </button>
             <button
-              className="p-2 rounded-full hover:bg-pink-100 dark:hover:bg-gray-700 text-gray-500 transition-colors opacity-50 cursor-not-allowed"
-              title="发图(即将上线)"
+              onClick={testImageGeneration}
+              disabled={!character || generatingImage}
+              className="p-2 rounded-full hover:bg-pink-100 dark:hover:bg-gray-700 text-gray-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={generatingImage ? "生成中..." : "生成图片"}
             >
-              <Image className="w-5 h-5" />
+              {generatingImage ? (
+                <Loader2 className="w-5 h-5 animate-spin text-pink-500" />
+              ) : (
+                <Image className="w-5 h-5" />
+              )}
             </button>
           </div>
 

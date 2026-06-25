@@ -36,16 +36,17 @@ export type ImageGenerationMode = "text_to_image" | "image_to_image";
 
 /**
  * 图片尺寸选项
+ * 注意：火山引擎要求最小 3686400 像素
  */
-export type ImageSize = "1K" | "2K" | "4K";
+export type ImageSize = "2K" | "4K";
 
 /**
  * 尺寸与分辨率映射
  */
 export const IMAGE_SIZE_MAP: Record<ImageSize, string> = {
-  "1K": "1024x1024",
-  "2K": "3136x1312",
-  "4K": "4032x4032",
+  // "2K": "3136x1312",  // 4,114,432 像素
+  "2K": "1920x1920",    // 3,686,400 像素（刚好满足最小要求）
+  "4K": "4032x4032",    // 16,257,024 像素
 };
 
 // ============ 响应类型 ============

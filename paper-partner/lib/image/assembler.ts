@@ -4,7 +4,10 @@
  * 根据角色、情绪、场景等参数自动组装完整的图像生成 Prompt
  */
 
-import "./prompts"; // 导入并注册所有角色 Prompt 库
+import "./prompts/characters/lin-ye"; // 导入并注册角色
+import "./prompts/characters/shen-mo";
+import "./prompts/characters/shu-ting";
+import "./prompts/characters/gu-ran";
 import {
   getCharacterPrompts,
   getExpressionTags,
@@ -15,7 +18,7 @@ import {
   type SceneSnippet,
   type LightingSnippet,
   type CameraSnippet,
-} from "./prompts";
+} from "./prompts/registry";
 
 // ==================== 组装请求类型 ====================
 

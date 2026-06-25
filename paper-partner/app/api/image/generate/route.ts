@@ -21,7 +21,7 @@ const REQUEST_TIMEOUT = 55; // 留 5 秒给 Next.js
 /**
  * 允许的尺寸选项
  */
-const ALLOWED_SIZES: ImageSize[] = ["1K", "2K", "4K"];
+const ALLOWED_SIZES: ImageSize[] = ["2K", "4K"];
 
 /**
  * POST /api/image/generate

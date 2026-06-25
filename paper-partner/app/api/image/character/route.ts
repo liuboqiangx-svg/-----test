@@ -7,14 +7,15 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getImageService } from "@/lib/image/service";
-import { PromptAssembler, getRegisteredCharacterIds } from "@/lib/image/prompts";
+import { PromptAssembler } from "@/lib/image/assembler";
+import { getRegisteredCharacterIds } from "@/lib/image/prompts/registry";
 import { GenerateCharacterImageRequest, GenerateImageResponse, ImageSize } from "@/lib/image";
 import { ERROR_CODES } from "@/lib/image/types";
 
 /**
  * 允许的尺寸选项
  */
-const ALLOWED_SIZES: ImageSize[] = ["1K", "2K", "4K"];
+const ALLOWED_SIZES: ImageSize[] = ["2K", "4K"];
 
 /**
  * 允许的角色 ID

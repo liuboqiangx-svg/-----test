@@ -171,11 +171,13 @@ export class ImageService {
 
       return response;
     } catch (error) {
-      // 记录错误
-      this.logger.logRequestError(
-        error instanceof Error ? error : new Error(String(error)),
-        timer.getElapsed()
-      );
+      // 详细日志
+      console.error("[ImageService] generateCharacterImage error:", {
+        errorName: error instanceof Error ? error.name : typeof error,
+        errorMessage: error instanceof Error ? error.message : String(error),
+        errorStack: error instanceof Error ? error.stack?.substring(0, 500) : undefined,
+        assembledPromptLength: assembledPrompt?.length,
+      });
 
       // 构建错误响应
       if (error instanceof ImageGenerationError) {
@@ -194,7 +196,7 @@ export class ImageService {
         success: false,
         error: {
           code: "UNKNOWN_ERROR",
-          message: "发生未知错误，请稍后再试",
+          message: error instanceof Error ? error.message : "发生未知错误，请稍后再试",
           type: "unknown",
         },
         meta: {
