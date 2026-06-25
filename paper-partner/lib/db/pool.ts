@@ -18,21 +18,25 @@ export interface DatabaseConfig {
   max?: number;       // 最大连接数
   idleTimeoutMillis?: number;
   connectionTimeoutMillis?: number;
+  ssl?: boolean;
 }
 
 /**
  * 默认配置（从环境变量读取）
  */
 function getConfigFromEnv(): DatabaseConfig {
+  const sslMode = process.env.PG_SSLMODE;
+
   return {
     host: process.env.PG_HOST || "localhost",
     port: parseInt(process.env.PG_PORT || "5432", 10),
     database: process.env.PG_DATABASE || "paper_partner",
     user: process.env.PG_USER || "postgres",
     password: process.env.PG_PASSWORD || "",
-    max: 20,  // 最大20个连接
+    max: 10,  // Neon 免费版最大连接数有限制
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
+    ssl: sslMode === "require" ? true : sslMode === "disable" ? false : undefined,
   };
 }
 
@@ -45,7 +49,14 @@ let pool: Pool | null = null;
 export function getPool(): Pool {
   if (!pool) {
     const config = getConfigFromEnv();
-    pool = new Pool(config);
+
+    // 配置 SSL（Neon 云端需要）
+    const poolConfig: DatabaseConfig = {
+      ...config,
+      ssl: config.ssl ? { rejectUnauthorized: false } as any : false,
+    };
+
+    pool = new Pool(poolConfig);
 
     // 连接池事件处理
     pool.on("error", (err) => {
