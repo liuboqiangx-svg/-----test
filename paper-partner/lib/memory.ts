@@ -2,6 +2,9 @@ import { getMemories, upsertMemory } from "@/lib/db";
 import { extractMemoryFromConversation } from "@/lib/llm";
 import { Memory } from "@/types";
 
+/**
+ * 从对话中提取并保存记忆
+ */
 export async function updateMemoryFromExchange(
   userId: string,
   characterId: string,
@@ -12,7 +15,7 @@ export async function updateMemoryFromExchange(
   const saved: Memory[] = [];
 
   for (const item of extracted) {
-    const memory = upsertMemory(
+    const memory = await upsertMemory(
       userId,
       characterId,
       item.category,
@@ -25,11 +28,14 @@ export async function updateMemoryFromExchange(
   return saved;
 }
 
-export function getMemoryPromptText(
+/**
+ * 获取记忆文本（注入到 Prompt 中）
+ */
+export async function getMemoryPromptText(
   userId: string,
   characterId: string
-): string {
-  const memories = getMemories(userId, characterId);
+): Promise<string> {
+  const memories = await getMemories(userId, characterId);
   if (memories.length === 0) return "";
 
   return `\n\n【你记得关于 TA 的事】\n${memories

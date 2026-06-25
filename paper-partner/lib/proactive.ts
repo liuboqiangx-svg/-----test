@@ -19,7 +19,7 @@ export async function maybeSendProactiveMessage(
   context: ProactiveContext
 ): Promise<{ sent: boolean; message?: string; state?: CharacterState }> {
   const { userId, userName, character } = context;
-  const state = getCharacterState(userId, character.id);
+  const state = await getCharacterState(userId, character.id);
   const now = new Date();
 
   // 如果用户最近 2 分钟内回过消息，不打扰
@@ -45,12 +45,12 @@ export async function maybeSendProactiveMessage(
   else if (hour >= 17 && hour < 20) topic = "下班后的疲惫和想见面";
   else if (hour >= 21) topic = "晚安前的撒娇";
 
-  const history = getMessages(userId, character.id, 10).map((m) => ({
+  const history = (await getMessages(userId, character.id, 10)).map((m) => ({
     role: m.role,
     content: m.content,
   }));
 
-  const memoryText = getMemoryPromptText(userId, character.id);
+  const memoryText = await getMemoryPromptText(userId, character.id);
 
   const prompt = `你正在主动给用户发消息，话题是：${topic}。
 请自然开启一个话题，不要太长，像恋人一样说话。${memoryText}`;
@@ -71,7 +71,7 @@ export async function maybeSendProactiveMessage(
   const greeting = getCharacterGreeting(character);
   const finalContent = Math.random() > 0.5 ? `${greeting} ${result.content}` : result.content;
 
-  insertMessage({
+  await insertMessage({
     user_id: userId,
     character_id: character.id,
     role: "character",
@@ -80,7 +80,7 @@ export async function maybeSendProactiveMessage(
   });
 
   const nextProactive = new Date(now.getTime() + 1000 * 60 * (15 + Math.random() * 30)); // 15-45 分钟后
-  const newState = updateCharacterState(userId, character.id, {
+  const newState = await updateCharacterState(userId, character.id, {
     mood: (result.mood as CharacterState["mood"]) || "miss",
     last_message_at: now.toISOString(),
     next_proactive_at: nextProactive.toISOString(),
@@ -89,13 +89,13 @@ export async function maybeSendProactiveMessage(
   return { sent: true, message: finalContent, state: newState };
 }
 
-export function scheduleNextProactive(
+export async function scheduleNextProactive(
   userId: string,
   characterId: string,
   minutesFromNow = 20
 ) {
   const next = new Date(Date.now() + 1000 * 60 * minutesFromNow);
-  updateCharacterState(userId, characterId, {
+  await updateCharacterState(userId, characterId, {
     next_proactive_at: next.toISOString(),
   });
 }

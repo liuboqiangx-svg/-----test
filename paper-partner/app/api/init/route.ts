@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
-import { initDatabase, saveCharacter } from "@/lib/db";
+import { initDatabaseAsync, saveCharacter } from "@/lib/db";
 import { DEFAULT_CHARACTER } from "@/lib/character";
 
 let initialized = false;
 
 export async function POST() {
   if (!initialized) {
-    initDatabase();
-    saveCharacter(DEFAULT_CHARACTER);
+    await initDatabaseAsync();
+    await saveCharacter(DEFAULT_CHARACTER);
     initialized = true;
   }
 

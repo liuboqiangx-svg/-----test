@@ -1,29 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   getMessages,
-  initDatabase,
+  initDatabaseAsync,
   insertMessage,
   markMessagesAsRead,
   saveCharacter,
+  getCharacterState,
+  updateCharacterState,
 } from "@/lib/db";
 import { DEFAULT_CHARACTER } from "@/lib/character";
 import { generateCharacterReply, isMockMode } from "@/lib/llm";
 import { getMemoryPromptText } from "@/lib/memory";
-import { getCharacterState, updateCharacterState } from "@/lib/db";
 import { MoodType } from "@/types";
 
 // 确保数据库已初始化
 let initialized = false;
-function ensureInit() {
+async function ensureInit() {
   if (!initialized) {
-    initDatabase();
-    saveCharacter(DEFAULT_CHARACTER);
+    await initDatabaseAsync();
+    await saveCharacter(DEFAULT_CHARACTER);
     initialized = true;
   }
 }
 
 export async function GET(request: NextRequest) {
-  ensureInit();
+  await ensureInit();
   const searchParams = request.nextUrl.searchParams;
   const characterId = searchParams.get("characterId") || DEFAULT_CHARACTER.id;
 
@@ -31,9 +32,9 @@ export async function GET(request: NextRequest) {
   const deviceId = request.headers.get("x-device-id") || "anonymous";
   const userId = deviceId;
 
-  const messages = getMessages(userId, characterId, 100);
-  const state = getCharacterState(userId, characterId);
-  markMessagesAsRead(userId, characterId);
+  const messages = await getMessages(userId, characterId, 100);
+  const state = await getCharacterState(userId, characterId);
+  await markMessagesAsRead(userId, characterId);
 
   return NextResponse.json({
     messages,
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  ensureInit();
+  await ensureInit();
 
   try {
     const body = await request.json();
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
     const charId = characterId || DEFAULT_CHARACTER.id;
 
     // 保存用户消息
-    const userMsg = insertMessage({
+    const userMsg = await insertMessage({
       user_id: userId,
       character_id: charId,
       role: "user",
@@ -68,12 +69,12 @@ export async function POST(request: NextRequest) {
     });
 
     // 获取历史和记忆
-    const history = getMessages(userId, charId, 20).map((m) => ({
+    const history = (await getMessages(userId, charId, 20)).map((m) => ({
       role: m.role,
       content: m.content,
     }));
-    const memoryText = getMemoryPromptText(userId, charId);
-    const state = getCharacterState(userId, charId);
+    const memoryText = await getMemoryPromptText(userId, charId);
+    const state = await getCharacterState(userId, charId);
     const nickname =
       state
         ? undefined
@@ -96,7 +97,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 保存角色回复
-    const charMsg = insertMessage({
+    const charMsg = await insertMessage({
       user_id: userId,
       character_id: charId,
       role: "character",
@@ -105,7 +106,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 更新角色状态（包含情绪强度）
-    const newState = updateCharacterState(userId, charId, {
+    const newState = await updateCharacterState(userId, charId, {
       mood: (result.mood as MoodType) || "calm",
       intimacy: Math.min(100, (state?.intimacy || 10) + DEFAULT_CHARACTER.intimacy_growth.reply),
       mood_intensity: result.intensity,

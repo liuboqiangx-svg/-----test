@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const userId = deviceId;
 
     if (mood || intimacy !== undefined) {
-      const state = updateCharacterState(userId, DEFAULT_CHARACTER.id, {
+      const state = await updateCharacterState(userId, DEFAULT_CHARACTER.id, {
         mood,
         intimacy,
       });
@@ -40,6 +40,6 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const deviceId = request.headers.get("x-device-id") || "anonymous";
   const userId = deviceId;
-  const state = getCharacterState(userId, DEFAULT_CHARACTER.id);
+  const state = await getCharacterState(userId, DEFAULT_CHARACTER.id);
   return NextResponse.json({ state });
 }
