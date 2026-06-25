@@ -1,11 +1,176 @@
 {
   "version": 1,
   "skills": {
-    "frontend-design": {
-      "source": "anthropics/skills",
-      "sourceType": "github",
-      "skillPath": "skills/frontend-design/SKILL.md",
-      "computedHash": "4eabc66183767153e404b39d1b839b1c37f2d82d86f0a0d7e880a579d8d62336"
+    "lark": {
+      "lark-approval": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-approval"
+      },
+      "lark-attendance": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-attendance"
+      },
+      "lark-base": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-base"
+      },
+      "lark-calendar": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-calendar"
+      },
+      "lark-contact": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-contact"
+      },
+      "lark-doc": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-doc"
+      },
+      "lark-drive": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-drive"
+      },
+      "lark-event": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-event"
+      },
+      "lark-im": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-im"
+      },
+      "lark-mail": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-mail"
+      },
+      "lark-markdown": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-markdown"
+      },
+      "lark-minutes": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-minutes"
+      },
+      "lark-okr": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-okr"
+      },
+      "lark-openapi-explorer": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-openapi-explorer"
+      },
+      "lark-shared": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-shared"
+      },
+      "lark-sheets": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-sheets"
+      },
+      "lark-skill-maker": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-skill-maker"
+      },
+      "lark-slides": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-slides"
+      },
+      "lark-task": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-task"
+      },
+      "lark-vc": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-vc"
+      },
+      "lark-vc-agent": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-vc-agent"
+      },
+      "lark-whiteboard": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-whiteboard"
+      },
+      "lark-wiki": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-wiki"
+      },
+      "lark-workflow-meeting-summary": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-workflow-meeting-summary"
+      },
+      "lark-workflow-standup-report": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/lark/lark-workflow-standup-report"
+      }
+    },
+    "xiaohongshu": {
+      "xiaohongshu-content-layout": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-content-layout"
+      },
+      "xiaohongshu-copywriting": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-copywriting"
+      },
+      "xiaohongshu-cover-design": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-cover-design"
+      },
+      "xiaohongshu-graphic-layout": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-graphic-layout"
+      },
+      "xiaohongshu-hashtag": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-hashtag"
+      },
+      "xiaohongshu-time-album": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-time-album"
+      },
+      "xiaohongshu-title-writing": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/xiaohongshu/xiaohongshu-title-writing"
+      }
+    },
+    "frontend": {
+      "frontend-design": {
+        "source": "local",
+        "sourceType": "directory",
+        "skillPath": "skills/frontend/frontend-design"
+      }
     }
   }
 }
