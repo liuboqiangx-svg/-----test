@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "description": "项目使用的 MCP 服务器配置列表",
+  "servers": [
+    {
+      "name": "chrome-devtools",
+      "description": "Chrome 开发者工具 - 浏览器自动化和控制",
+      "scope": "user",
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest", "--no-usage-statistics", "--no-performance-crux"],
+      "status": "installed",
+      "capabilities": [
+        "页面导航",
+        "元素交互",
+        "表单填写",
+        "网络监控",
+        "性能分析",
+        "截图",
+        "控制台日志",
+        "设备模拟"
+      ],
+      "installCommand": "claude mcp add chrome-devtools -s user -t stdio -- npx -y chrome-devtools-mcp@latest --no-usage-statistics --no-performance-crux"
+    }
+  ],
+  "recommendedServers": []
+}

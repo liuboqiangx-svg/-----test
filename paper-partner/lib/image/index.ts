@@ -22,6 +22,9 @@ export {
   ERROR_TYPE_MAP,
 } from "./types";
 
+// 角色图像生成请求类型
+export type { GenerateCharacterImageRequest } from "./service";
+
 // 错误导出
 export {
   ImageGenerationError,
@@ -47,7 +50,7 @@ export {
 
 // Provider 导出
 export {
-  ImageProvider,
+  type ImageProvider,
   registerProvider,
   getProvider,
   getRegisteredProviders,
@@ -58,3 +61,19 @@ export {
   VolcanoImageProvider,
   createVolcanoProvider,
 } from "./providers/volcano";
+
+// Prompt 组装器
+export {
+  PromptAssembler,
+  assembleImagePrompt,
+  previewImagePrompt,
+  type AssemblePromptRequest,
+  type AssemblePromptResult,
+} from "./assembler";
+
+// Prompt 片段工具
+export {
+  getCharacterPrompts,
+  getRegisteredCharacterIds,
+  getExpressionTags,
+} from "./prompts/registry";

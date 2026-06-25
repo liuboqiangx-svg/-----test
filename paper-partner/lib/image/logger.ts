@@ -37,9 +37,19 @@ class ImageLogger {
   }
 
   /**
-   * 记录请求开始
+   * 记录请求开始（扩展版本，支持更多参数）
    */
-  logRequestStart(options: ProviderOptions): void {
+  logRequestStart(options: {
+    prompt: string;
+    character_id?: string;
+    emotion?: string;
+    scene?: string;
+    size?: string;
+    watermark?: boolean;
+    reference_images?: string[];
+    mode?: string;
+    requestId?: string;
+  }): void {
     if (!this.enabled) return;
 
     const entry: LogEntry = {
@@ -48,10 +58,14 @@ class ImageLogger {
       provider: this.provider,
       message: "Image generation request started",
       metadata: {
-        request_id: options.requestId,
+        request_id: options.requestId || "unknown",
         prompt_length: options.prompt.length,
         size: options.size,
         watermark: options.watermark,
+        character_id: options.character_id,
+        emotion: options.emotion,
+        scene: options.scene,
+        mode: options.mode,
       },
     };
 
