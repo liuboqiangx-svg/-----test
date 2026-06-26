@@ -2,21 +2,14 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema-drizzle";
 
-// 从环境变量构建连接配置
-const connectionConfig = {
-  host: process.env.PG_HOST!,
-  port: parseInt(process.env.PG_PORT || "5432"),
-  database: process.env.PG_DATABASE!,
-  user: process.env.PG_USER!,
-  password: process.env.PG_PASSWORD!,
-  ssl: process.env.PG_SSLMODE === "require" ? "require" as const : undefined,
-};
+// 构建连接 URL
+const connectionUrl = `postgresql://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT || "5432"}/${process.env.PG_DATABASE}${process.env.PG_SSLMODE === "require" ? "?sslmode=require" : ""}`;
 
 // 迁移客户端（低连接数，用于 drizzle-kit）
-const migrationClient = postgres(connectionConfig, { max: 1 });
+const migrationClient = postgres(connectionUrl, { max: 1 });
 
 // 查询客户端（正常连接数）
-const queryClient = postgres(connectionConfig);
+const queryClient = postgres(connectionUrl);
 
 // Drizzle 实例
 export const db = drizzle(queryClient, { schema });
