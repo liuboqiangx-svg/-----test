@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-纸片人男友是一个 AI 陪伴聊天应用，基于 Next.js 构建，使用 OpenAI API 实现与虚拟角色的智能对话。
+纸片人男友/女友是一个 AI 陪伴聊天应用，基于 Next.js 构建，使用 OpenAI API 实现与虚拟角色的智能对话。
 
 ## 开发命令
 

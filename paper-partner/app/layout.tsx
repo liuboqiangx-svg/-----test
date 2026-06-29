@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "纸片人男友 - AI 情感陪伴",
-  description: "用 AI 模拟真实恋爱体验，情感陪伴、角色扮演、练习反馈",
+  title: "纸片人 - AI 情感陪伴",
+  description: "AI 虚拟恋人/女友，模拟真实恋爱体验，情感陪伴、角色扮演",
 };
 
 export default function RootLayout({

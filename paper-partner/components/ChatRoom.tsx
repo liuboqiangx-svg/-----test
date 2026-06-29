@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Send, Sparkles, Loader2, Mic, Image, Heart, Zap, Volume2 } from "lucide-react";
+import { Send, Sparkles, Loader2, Mic, Image, Heart, Zap, Volume2, Play, Pause } from "lucide-react";
 import type { Message, CharacterProfile, CharacterState, MoodType } from "@/types";
 import { MOOD_LABELS, MOOD_EMOJIS } from "@/types";
+import { getCharacterVoiceConfig } from "@/lib/character";
 
 interface MessageWithImage {
   id: string;
@@ -17,6 +18,20 @@ interface MessageWithImage {
   media_url?: string;
   is_read: boolean;
   created_at: string;
+}
+
+/** 语音消息状态 */
+interface VoiceState {
+  /** 是否正在生成 */
+  isGenerating: boolean;
+  /** 是否正在播放 */
+  isPlaying: boolean;
+  /** 音频URL */
+  audioUrl?: string;
+  /** 播放进度 (0-100) */
+  progress: number;
+  /** 时长（秒） */
+  duration: number;
 }
 
 interface ChatRoomProps {
@@ -34,9 +49,10 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const [moodChanged, setMoodChanged] = useState(false);
   const [lastMood, setLastMood] = useState<string>("");
   const [generatingImage, setGeneratingImage] = useState(false);
-  const [playingMessageId, setPlayingMessageId] = useState<string | null>(null);
-  const [generatingVoice, setGeneratingVoice] = useState<string | null>(null);
+  // 语音消息状态管理
+  const [voiceStates, setVoiceStates] = useState<Record<string, VoiceState>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const currentVoiceIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const deviceIdRef = useRef<string>("");
@@ -229,19 +245,39 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
 
   // 生成并播放语音
   const playVoice = async (msg: MessageWithImage) => {
-    // 如果正在播放或正在生成，直接返回
-    if (playingMessageId === msg.id || generatingVoice === msg.id) return;
-    if (generatingVoice) return;
+    // 如果已经在生成这个语音，直接返回
+    if (voiceStates[msg.id]?.isGenerating) return;
 
-    setPlayingMessageId(msg.id);
-    setGeneratingVoice(msg.id);
+    // 如果正在播放这个语音，暂停它
+    if (voiceStates[msg.id]?.isPlaying) {
+      stopVoice();
+      return;
+    }
+
+    // 如果有其他语音在播放，先停止
+    if (currentVoiceIdRef.current && currentVoiceIdRef.current !== msg.id) {
+      stopVoice();
+    }
+
+    // 设置正在生成
+    setVoiceStates(prev => ({
+      ...prev,
+      [msg.id]: { ...prev[msg.id], isGenerating: true, isPlaying: false, progress: 0 }
+    }));
 
     try {
+      // 获取角色的音色配置
+      const voiceConfig = getCharacterVoiceConfig(msg.character_id || character?.id || "lu-chen-001");
+
       // 调用 TTS API 生成语音
       const res = await fetch("/api/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: msg.content }),
+        body: JSON.stringify({
+          text: msg.content,
+          speaker: voiceConfig.voiceId,
+          speed: voiceConfig.speed,
+        }),
       });
 
       const data = await res.json();
@@ -253,31 +289,71 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
           audioRef.current = null;
         }
 
-        // 播放新音频
+        // 加载新音频
         const audio = new Audio(data.data.url);
         audioRef.current = audio;
+        currentVoiceIdRef.current = msg.id;
 
-        audio.onplay = () => {
-          setPlayingMessageId(msg.id);
-        };
+        // 获取音频时长
+        audio.addEventListener("loadedmetadata", () => {
+          setVoiceStates(prev => ({
+            ...prev,
+            [msg.id]: {
+              ...prev[msg.id],
+              audioUrl: data.data.url,
+              duration: audio.duration || 0,
+            }
+          }));
+        });
 
-        audio.onended = () => {
-          setPlayingMessageId(null);
-        };
+        // 播放进度更新
+        audio.addEventListener("timeupdate", () => {
+          if (audio.duration) {
+            const progress = (audio.currentTime / audio.duration) * 100;
+            setVoiceStates(prev => ({
+              ...prev,
+              [msg.id]: { ...prev[msg.id], progress }
+            }));
+          }
+        });
 
-        audio.onerror = () => {
+        audio.addEventListener("ended", () => {
+          setVoiceStates(prev => ({
+            ...prev,
+            [msg.id]: { ...prev[msg.id], isPlaying: false, progress: 0 }
+          }));
+          currentVoiceIdRef.current = null;
+        });
+
+        audio.addEventListener("error", () => {
           console.error("音频播放失败");
-          setPlayingMessageId(null);
-        };
+          setVoiceStates(prev => ({
+            ...prev,
+            [msg.id]: { ...prev[msg.id], isPlaying: false, isGenerating: false }
+          }));
+          currentVoiceIdRef.current = null;
+        });
 
+        // 开始播放
         await audio.play();
+
+        setVoiceStates(prev => ({
+          ...prev,
+          [msg.id]: { ...prev[msg.id], isGenerating: false, isPlaying: true }
+        }));
       } else {
         console.error("语音生成失败:", data.error);
+        setVoiceStates(prev => ({
+          ...prev,
+          [msg.id]: { ...prev[msg.id], isGenerating: false }
+        }));
       }
     } catch (error) {
       console.error("播放语音错误:", error);
-    } finally {
-      setGeneratingVoice(null);
+      setVoiceStates(prev => ({
+        ...prev,
+        [msg.id]: { ...prev[msg.id], isGenerating: false }
+      }));
     }
   };
 
@@ -285,9 +361,16 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const stopVoice = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
       audioRef.current = null;
     }
-    setPlayingMessageId(null);
+    if (currentVoiceIdRef.current) {
+      setVoiceStates(prev => ({
+        ...prev,
+        [currentVoiceIdRef.current!]: { ...prev[currentVoiceIdRef.current!], isPlaying: false, progress: 0 }
+      }));
+      currentVoiceIdRef.current = null;
+    }
   };
 
   // 测试图像生成
@@ -453,33 +536,70 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                 {/* 语音播放按钮（仅角色消息显示） */}
                 {msg.role === "character" && (
-                  <button
-                    onClick={() => playingMessageId === msg.id ? stopVoice() : playVoice(msg)}
-                    disabled={generatingVoice !== null && generatingVoice !== msg.id}
-                    className={`mt-2 flex items-center gap-1 text-xs px-3 py-1.5 rounded-full transition-all ${
-                      playingMessageId === msg.id
-                        ? "bg-orange-100 text-orange-600"
-                        : "bg-amber-50 text-amber-600 hover:bg-orange-100"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    title="播放语音"
-                  >
-                    {generatingVoice === msg.id ? (
-                      <>
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>生成中...</span>
-                      </>
-                    ) : playingMessageId === msg.id ? (
-                      <>
-                        <Volume2 className="w-3 h-3" />
-                        <span>播放中</span>
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="w-3 h-3" />
-                        <span>听语音</span>
-                      </>
-                    )}
-                  </button>
+                  <div className="mt-2">
+                    <button
+                      onClick={() => playVoice(msg)}
+                      disabled={voiceStates[msg.id]?.isGenerating}
+                      className="twilight-voice-bubble py-2 px-3"
+                      title={voiceStates[msg.id]?.isPlaying ? "暂停" : "播放语音"}
+                    >
+                      {/* 播放按钮 */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (voiceStates[msg.id]?.isPlaying) {
+                            stopVoice();
+                          } else {
+                            playVoice(msg);
+                          }
+                        }}
+                        className="twilight-play-btn w-8 h-8"
+                        disabled={voiceStates[msg.id]?.isGenerating}
+                      >
+                        {voiceStates[msg.id]?.isGenerating ? (
+                          <Loader2 className="w-3 h-3 twilight-spin" />
+                        ) : voiceStates[msg.id]?.isPlaying ? (
+                          <Pause className="w-3 h-3" />
+                        ) : (
+                          <Play className="w-3 h-3 ml-0.5" />
+                        )}
+                      </button>
+
+                      {/* 波形动画（播放时显示） */}
+                      {voiceStates[msg.id]?.isPlaying ? (
+                        <div className="flex items-center gap-0.5 flex-1">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <div
+                              key={i}
+                              className="twilight-wave-bar"
+                              style={{
+                                animationDelay: `${i * 0.1}s`,
+                                height: `${6 + Math.random() * 8}px`,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="flex-1 h-4 flex items-center">
+                          <div className="twilight-progress-bar flex-1">
+                            <div
+                              className="twilight-progress-fill"
+                              style={{ width: `${voiceStates[msg.id]?.progress || 0}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {/* 时长 */}
+                      <span className="twilight-voice-time text-xs whitespace-nowrap">
+                        {voiceStates[msg.id]?.isGenerating
+                          ? "生成中..."
+                          : voiceStates[msg.id]?.isPlaying
+                          ? "播放中"
+                          : "听语音"}
+                      </span>
+                    </button>
+                  </div>
                 )}
                 <p
                   className={`text-xs mt-1 opacity-70 ${

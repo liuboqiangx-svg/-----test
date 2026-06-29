@@ -10,7 +10,7 @@ import { SynthesizeRequest } from "@/lib/voice";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { text, speaker, format } = body as Partial<SynthesizeRequest>;
+    const { text, speaker, format, speed } = body as Partial<SynthesizeRequest>;
 
     if (!text?.trim()) {
       return NextResponse.json(
@@ -27,6 +27,7 @@ export async function POST(request: NextRequest) {
       text: text.trim(),
       speaker: speaker || "zh-CN-XiaoxiaoNeural",
       format: format || "mp3",
+      speed: speed, // 语速参数
     });
 
     return NextResponse.json({
