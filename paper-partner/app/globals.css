@@ -3,6 +3,25 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* 暮光治愈系主题色 */
+  --twilight-primary: #FF9F43;
+  --twilight-primary-dark: #FF8C5A;
+  --twilight-secondary: #E8A4A4;
+  --twilight-accent: #FFB87A;
+  --twilight-bg-start: #F5E6D3;
+  --twilight-bg-mid: #E8D4C4;
+  --twilight-bg-end: #E8A4A4;
+  --twilight-surface: #FFECD2;
+  --twilight-surface-alt: #FFF8F0;
+  --twilight-text-primary: #6B5344;
+  --twilight-text-secondary: #A08060;
+  --twilight-text-muted: #C4A080;
+  --twilight-border: rgba(255, 159, 67, 0.2);
+  --twilight-border-strong: rgba(255, 159, 67, 0.4);
+  --twilight-shadow-sm: 0 2px 8px rgba(255, 159, 67, 0.15);
+  --twilight-shadow-md: 0 4px 16px rgba(255, 159, 67, 0.2);
+  --twilight-shadow-lg: 0 8px 32px rgba(255, 159, 67, 0.25);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -50,4 +69,540 @@ body {
 /* textarea 自动高度 */
 textarea {
   field-sizing: content;
+}
+
+/* ============================================
+   暮光治愈系 - Twilight Theme
+   ============================================ */
+
+/* 全局背景渐变 */
+.twilight-gradient {
+  background: linear-gradient(180deg, var(--twilight-bg-start) 0%, var(--twilight-bg-mid) 50%, var(--twilight-bg-end) 100%);
+}
+
+.twilight-gradient-soft {
+  background: linear-gradient(180deg, var(--twilight-surface-alt) 0%, var(--twilight-surface) 100%);
+}
+
+/* 头部导航栏 */
+.twilight-header {
+  background: linear-gradient(135deg, var(--twilight-primary), var(--twilight-primary-dark));
+  backdrop-filter: blur(10px);
+}
+
+.twilight-header-glass {
+  background: rgba(255, 236, 210, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--twilight-border);
+}
+
+/* 消息气泡 */
+.twilight-bubble-bot {
+  background: var(--twilight-surface);
+  color: var(--twilight-text-primary);
+  border-radius: 20px 20px 20px 6px;
+  box-shadow: var(--twilight-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.twilight-bubble-bot:hover {
+  box-shadow: var(--twilight-shadow-md);
+}
+
+.twilight-bubble-user {
+  background: linear-gradient(135deg, var(--twilight-primary), var(--twilight-primary-dark));
+  color: #fff;
+  border-radius: 20px 20px 6px 20px;
+  box-shadow: var(--twilight-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.twilight-bubble-user:hover {
+  box-shadow: var(--twilight-shadow-md);
+}
+
+/* 语音消息条 */
+.twilight-voice-bubble {
+  background: linear-gradient(135deg, var(--twilight-surface), #FFE4C4);
+  border: 1px solid var(--twilight-border-strong);
+  border-radius: 20px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 180px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.twilight-voice-bubble:hover {
+  border-color: var(--twilight-primary);
+  box-shadow: var(--twilight-shadow-sm);
+}
+
+.twilight-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--twilight-primary), var(--twilight-primary-dark));
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.twilight-play-btn:hover {
+  transform: scale(1.1);
+  box-shadow: var(--twilight-shadow-md);
+}
+
+.twilight-play-btn:active {
+  transform: scale(0.95);
+}
+
+.twilight-voice-progress {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.twilight-progress-bar {
+  height: 4px;
+  background: rgba(255, 159, 67, 0.25);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.twilight-progress-fill {
+  height: 100%;
+  width: 35%;
+  background: linear-gradient(90deg, var(--twilight-primary), var(--twilight-accent));
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.twilight-voice-time {
+  font-size: 11px;
+  color: var(--twilight-text-secondary);
+  display: flex;
+  justify-content: space-between;
+}
+
+/* 图片消息 */
+.twilight-image-bubble {
+  background: var(--twilight-surface);
+  padding: 6px;
+  border-radius: 16px;
+  box-shadow: var(--twilight-shadow-sm);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.twilight-image-bubble:hover {
+  transform: scale(1.02);
+  box-shadow: var(--twilight-shadow-md);
+}
+
+.twilight-image-bubble img {
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+/* 输入框 */
+.twilight-input {
+  background: var(--twilight-surface-alt);
+  border: 2px solid var(--twilight-border-strong);
+  border-radius: 24px;
+  padding: 12px 18px;
+  font-size: 15px;
+  color: var(--twilight-text-primary);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.twilight-input:focus {
+  outline: none;
+  border-color: var(--twilight-primary);
+  box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.15);
+}
+
+.twilight-input::placeholder {
+  color: var(--twilight-text-muted);
+}
+
+.twilight-input-area {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 按钮 */
+.twilight-btn {
+  background: linear-gradient(135deg, var(--twilight-primary), var(--twilight-primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.twilight-btn:hover {
+  transform: scale(1.08);
+  box-shadow: var(--twilight-shadow-lg);
+}
+
+.twilight-btn:active {
+  transform: scale(0.95);
+}
+
+.twilight-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.twilight-send-btn {
+  width: 46px;
+  height: 46px;
+  font-size: 18px;
+}
+
+.twilight-icon-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+}
+
+.twilight-icon-btn:hover {
+  background: rgba(255, 159, 67, 0.1);
+}
+
+/* 角色卡片 */
+.twilight-card {
+  background: linear-gradient(145deg, var(--twilight-surface), #FFE4C4);
+  border-radius: 20px;
+  padding: 20px 16px;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.twilight-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--twilight-primary);
+  box-shadow: var(--twilight-shadow-lg);
+}
+
+.twilight-card.selected {
+  border-color: var(--twilight-primary);
+  box-shadow: var(--twilight-shadow-lg);
+}
+
+.twilight-card-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFD4A8, var(--twilight-accent));
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.5);
+  box-shadow: var(--twilight-shadow-sm);
+}
+
+.twilight-card-name {
+  color: var(--twilight-text-primary);
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.twilight-card-job {
+  color: var(--twilight-text-secondary);
+  font-size: 12px;
+}
+
+/* 登录/注册表单 */
+.twilight-form {
+  background: linear-gradient(180deg, #FFE4C4, var(--twilight-bg-mid));
+  padding: 30px 24px 40px;
+  border-radius: 24px;
+  box-shadow: var(--twilight-shadow-lg);
+}
+
+.twilight-form-title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--twilight-text-primary);
+  margin-bottom: 8px;
+}
+
+.twilight-form-subtitle {
+  text-align: center;
+  color: var(--twilight-text-secondary);
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.twilight-form-group {
+  margin-bottom: 16px;
+}
+
+.twilight-form-label {
+  display: block;
+  color: var(--twilight-text-primary);
+  font-size: 13px;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.twilight-form-input {
+  width: 100%;
+  background: var(--twilight-surface-alt);
+  border: 2px solid var(--twilight-border-strong);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 15px;
+  color: var(--twilight-text-primary);
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.twilight-form-input:focus {
+  outline: none;
+  border-color: var(--twilight-primary);
+  box-shadow: 0 0 0 3px rgba(255, 159, 67, 0.15);
+}
+
+.twilight-form-input::placeholder {
+  color: var(--twilight-text-muted);
+}
+
+.twilight-form-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--twilight-primary), var(--twilight-primary-dark));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.twilight-form-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--twilight-shadow-md);
+}
+
+.twilight-form-btn:active {
+  transform: translateY(0);
+}
+
+/* 情绪标签 */
+.twilight-mood-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.twilight-mood-badge-light {
+  background: rgba(255, 159, 67, 0.15);
+  color: var(--twilight-primary);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* 头像 */
+.twilight-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFD4A8, var(--twilight-accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  box-shadow: var(--twilight-shadow-sm);
+  border: 3px solid rgba(255, 255, 255, 0.3);
+}
+
+.twilight-avatar-sm {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  border-width: 2px;
+}
+
+.twilight-avatar-lg {
+  width: 70px;
+  height: 70px;
+  font-size: 32px;
+}
+
+/* 在线状态指示器 */
+.twilight-status-online {
+  width: 12px;
+  height: 12px;
+  background: #4ADE80;
+  border-radius: 50%;
+  border: 2px solid white;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+/* 动画 */
+@keyframes twilight-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.twilight-animate-in {
+  animation: twilight-slide-in 0.3s ease forwards;
+}
+
+@keyframes twilight-breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+.twilight-animate-breathe {
+  animation: twilight-breathe 3s ease-in-out infinite;
+}
+
+.twilight-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* 亲密度指示条 */
+.twilight-intimacy-track {
+  width: 60px;
+  height: 6px;
+  background: rgba(255, 159, 67, 0.2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.twilight-intimacy-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--twilight-primary), var(--twilight-accent));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* 贴纸/表情 */
+.twilight-sticker {
+  font-size: 32px;
+  padding: 8px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.twilight-sticker:hover {
+  background: rgba(255, 159, 67, 0.15);
+  transform: scale(1.2);
+}
+
+/* 演示模式标签 */
+.twilight-demo-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.twilight-demo-badge-light {
+  background: rgba(255, 159, 67, 0.15);
+  color: var(--twilight-primary);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* 会员中心 */
+.twilight-member-card {
+  background: var(--twilight-surface);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--twilight-shadow-md);
+  border: 1px solid var(--twilight-border);
+}
+
+.twilight-plan-card {
+  background: var(--twilight-surface-alt);
+  border-radius: 16px;
+  padding: 20px;
+  border: 2px solid var(--twilight-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.twilight-plan-card:hover,
+.twilight-plan-card.selected {
+  border-color: var(--twilight-primary);
+  box-shadow: var(--twilight-shadow-md);
+}
+
+.twilight-price {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--twilight-primary);
+}
+
+.twilight-price-unit {
+  font-size: 14px;
+  color: var(--twilight-text-secondary);
+  font-weight: 400;
 }

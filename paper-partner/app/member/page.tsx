@@ -92,8 +92,8 @@ export default function MemberPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-8 h-8 animate-spin text-pink-500" />
+      <div className="min-h-screen flex items-center justify-center twilight-gradient">
+        <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
       </div>
     );
   }
@@ -103,16 +103,19 @@ export default function MemberPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen twilight-gradient-soft">
       {/* 顶部导航 */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
+      <header className="twilight-header-glass sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-900">会员中心</h1>
+          <h1 className="text-lg font-semibold twilight-card-name flex items-center gap-2">
+            <Crown className="w-5 h-5 text-orange-500" />
+            会员中心
+          </h1>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-500">{user.name}</span>
+            <span className="text-sm text-amber-700">{user.name}</span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700"
+              className="flex items-center gap-1 text-sm text-amber-700 hover:text-orange-600 transition-colors"
             >
               <LogOut className="w-4 h-4" />
               退出
@@ -124,16 +127,16 @@ export default function MemberPage() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* 当前订阅状态 */}
         <section className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">我的订阅</h2>
+          <h2 className="text-xl font-semibold twilight-card-name mb-4">我的订阅</h2>
           {subscription ? (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
+            <div className="twilight-member-card">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <Crown className="w-6 h-6 text-yellow-600" />
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-yellow-200 to-orange-200 flex items-center justify-center shadow-md">
+                  <Crown className="w-7 h-7 text-orange-600" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900">{subscription.planName}</h3>
-                  <p className="text-sm text-gray-500">
+                  <h3 className="font-semibold twilight-card-name">{subscription.planName}</h3>
+                  <p className="text-sm text-amber-700">
                     {subscription.planDuration} 天会员
                   </p>
                 </div>
@@ -145,61 +148,59 @@ export default function MemberPage() {
                         : "bg-gray-100 text-gray-600"
                     }`}
                   >
-                    {subscription.isActive ? "有效" : "已过期"}
+                    {subscription.isActive ? "✨ 有效" : "已过期"}
                   </span>
                 </div>
               </div>
 
               {subscription.isActive && subscription.endDate && (
-                <div className="text-sm text-gray-500">
-                  到期时间：{format(new Date(subscription.endDate), "yyyy-MM-dd HH:mm", { locale: zhCN })}
+                <div className="text-sm text-amber-700">
+                  ⏰ 到期时间：{format(new Date(subscription.endDate), "yyyy-MM-dd HH:mm", { locale: zhCN })}
                 </div>
               )}
 
               {subscription.autoRenew && (
-                <div className="mt-2 text-sm text-gray-500 flex items-center gap-1">
+                <div className="mt-2 text-sm text-amber-700 flex items-center gap-1">
                   <Check className="w-4 h-4 text-green-500" />
                   已开启自动续费
                 </div>
               )}
             </div>
           ) : (
-            <div className="bg-white rounded-xl border border-gray-200 p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                <CreditCard className="w-6 h-6 text-gray-400" />
+            <div className="twilight-member-card text-center">
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-100 to-amber-100 flex items-center justify-center mx-auto mb-4 shadow-sm">
+                <CreditCard className="w-7 h-7 text-orange-500" />
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">暂无订阅</h3>
-              <p className="text-sm text-gray-500">选择一个套餐，开启会员之旅</p>
+              <h3 className="font-medium twilight-card-name mb-1">暂无订阅</h3>
+              <p className="text-sm text-amber-700">选择一个套餐，开启会员之旅</p>
             </div>
           )}
         </section>
 
         {/* 套餐选择 */}
         <section>
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">选择套餐</h2>
+          <h2 className="text-xl font-semibold twilight-card-name mb-4">选择套餐</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {plans.map((plan) => (
               <div
                 key={plan.id}
-                className={`bg-white rounded-xl border ${
-                  subscription?.planId === plan.id
-                    ? "border-pink-500 ring-2 ring-pink-100"
-                    : "border-gray-200"
-                } p-6`}
+                className={`twilight-plan-card ${
+                  subscription?.planId === plan.id ? "selected" : ""
+                }`}
               >
-                <h3 className="font-semibold text-gray-900 mb-2">{plan.name}</h3>
+                <h3 className="font-semibold twilight-card-name mb-2">{plan.name}</h3>
                 <div className="mb-4">
-                  <span className="text-3xl font-bold text-gray-900">¥{plan.price}</span>
-                  <span className="text-sm text-gray-500">/{plan.durationDays}天</span>
+                  <span className="twilight-price">¥{plan.price}</span>
+                  <span className="twilight-price-unit">/{plan.durationDays}天</span>
                 </div>
                 {plan.description && (
-                  <p className="text-sm text-gray-500 mb-4">{plan.description}</p>
+                  <p className="text-sm text-amber-700 mb-4">{plan.description}</p>
                 )}
                 {plan.features && plan.features.length > 0 && (
                   <ul className="space-y-2 mb-6">
                     {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-sm text-gray-600">
-                        <Check className="w-4 h-4 text-green-500 flex-shrink-0" />
+                      <li key={i} className="flex items-center gap-2 text-sm text-amber-800">
+                        <Check className="w-4 h-4 text-orange-500 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
@@ -208,21 +209,21 @@ export default function MemberPage() {
                 <button
                   onClick={() => handleSelectPlan(plan)}
                   disabled={plansLoading}
-                  className={`w-full py-2 rounded-lg font-medium transition-colors ${
+                  className={`twilight-form-btn ${
                     subscription?.planId === plan.id
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                      : "bg-pink-500 text-white hover:bg-pink-600 disabled:opacity-50"
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : ""
                   }`}
                 >
-                  {subscription?.planId === plan.id ? "当前套餐" : "选择"}
+                  {subscription?.planId === plan.id ? "当前套餐" : "选择套餐"}
                 </button>
               </div>
             ))}
           </div>
 
           {plans.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              暂无可用套餐
+            <div className="twilight-member-card text-center py-8">
+              <p className="text-amber-700">暂无可用套餐</p>
             </div>
           )}
         </section>

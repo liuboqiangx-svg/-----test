@@ -41,24 +41,27 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 to-white dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="min-h-screen flex items-center justify-center twilight-gradient px-4">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+        <div className="twilight-form">
+          {/* 标题 */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">注册</h1>
-            <p className="text-gray-500 mt-2">创建你的账号</p>
+            <div className="twilight-avatar-lg mx-auto mb-4 text-3xl">💕</div>
+            <h1 className="twilight-form-title">💕 创建账号</h1>
+            <p className="twilight-form-subtitle">开启你的甜蜜之旅</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit}>
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600 text-center">
                 {error}
               </div>
             )}
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                名称
+            {/* 名称 */}
+            <div className="twilight-form-group">
+              <label className="twilight-form-label">
+                昵称
               </label>
               <input
                 type="text"
@@ -66,12 +69,13 @@ export default function RegisterPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="你的昵称"
                 required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="twilight-form-input"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {/* 邮箱 */}
+            <div className="twilight-form-group">
+              <label className="twilight-form-label">
                 邮箱
               </label>
               <input
@@ -80,12 +84,13 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="twilight-form-input"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            {/* 密码 */}
+            <div className="twilight-form-group">
+              <label className="twilight-form-label">
                 密码
               </label>
               <input
@@ -95,36 +100,45 @@ export default function RegisterPage() {
                 placeholder="至少6位"
                 minLength={6}
                 required
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="twilight-form-input"
               />
             </div>
 
+            {/* 提交按钮 */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-pink-500 text-white rounded-lg hover:bg-pink-600 disabled:opacity-50 transition-colors"
+              className="twilight-form-btn flex items-center justify-center gap-2"
             >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              {loading ? "注册中..." : "注册"}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  注册中...
+                </>
+              ) : (
+                "注 册"
+              )}
             </button>
           </form>
 
+          {/* 登录链接 */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="twilight-form-label">
               已有账号？{" "}
               <Link
                 href="/auth/login"
-                className="text-pink-500 hover:text-pink-600 font-medium"
+                className="text-orange-500 hover:text-orange-600 font-semibold"
               >
                 立即登录
               </Link>
             </p>
           </div>
 
+          {/* 返回首页 */}
           <div className="mt-4 text-center">
             <Link
               href="/"
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-amber-700 hover:text-amber-800"
             >
               返回首页
             </Link>
