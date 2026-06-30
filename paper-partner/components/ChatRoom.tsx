@@ -502,8 +502,8 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
       currentGroup?.messages.push(msg);
     });
 
-    return groups.map((group) => (
-      <div key={group.date}>
+    return groups.map((group, groupIndex) => (
+      <div key={`${group.date}-${groupIndex}`}>
         {/* 日期标签 */}
         <div className="flex items-center justify-center my-4">
           <span className="px-4 py-1 bg-white/60 backdrop-blur-sm rounded-full text-xs text-amber-600 shadow-sm">
