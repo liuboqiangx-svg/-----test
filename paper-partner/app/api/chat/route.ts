@@ -10,8 +10,10 @@ import {
 } from "@/lib/db/index-drizzle";
 import { DEFAULT_CHARACTER, getCharacterById } from "@/lib/character";
 import { generateCharacterReply, isMockMode } from "@/lib/llm";
-import { getMemoryPromptText } from "@/lib/memory";
 import { MoodType } from "@/types";
+import { detectImageTrigger } from "@/lib/image/trigger";
+import { getCharacterAvatarBase64, hasCharacterAvatar } from "@/lib/character-avatar";
+import { getImageService } from "@/lib/image/service";
 
 // 确保数据库已初始化
 let initialized = false;
@@ -74,12 +76,11 @@ export async function POST(request: NextRequest) {
       type: "text",
     });
 
-    // 获取历史和记忆
+    // 获取历史
     const history = (await getMessages(userId, charId, 20)).map((m) => ({
       role: m.role,
       content: m.content,
     }));
-    const memoryText = await getMemoryPromptText(userId, charId);
     const state = await getCharacterState(userId, charId);
     const nickname =
       state
@@ -87,6 +88,12 @@ export async function POST(request: NextRequest) {
         : characterConfig.nicknames_for_user[
             Math.floor(Math.random() * characterConfig.nicknames_for_user.length)
           ];
+
+    // 检测是否触发图片生成
+    const imageTrigger = detectImageTrigger(content.trim());
+    const shouldGenerateImage = imageTrigger.triggered &&
+                                 hasCharacterAvatar(charId) &&
+                                 imageTrigger.suggestedScene;
 
     // 生成角色回复（使用当前角色的配置）
     const result = await generateCharacterReply({
@@ -111,6 +118,31 @@ export async function POST(request: NextRequest) {
       type: "text",
     });
 
+    // 如果触发图片生成，生成图片并保存
+    let imageMessage = null;
+    if (shouldGenerateImage) {
+      const avatarBase64 = getCharacterAvatarBase64(charId);
+      if (avatarBase64) {
+        const imageService = getImageService();
+        const imageResult = await imageService.generateCharacterImage({
+          characterId: charId,
+          scene: imageTrigger.suggestedScene,
+          reference_images: [avatarBase64],
+          image_prompt: `A beautiful woman in a ${imageTrigger.suggestedScene}, natural pose, high quality photo`,
+        });
+
+        if (imageResult.success && imageResult.data) {
+          imageMessage = await insertMessage({
+            user_id: userId,
+            character_id: charId,
+            role: "character",
+            content: imageResult.data.url,
+            type: "image",
+          });
+        }
+      }
+    }
+
     // 更新角色状态（使用当前角色的亲密度成长配置）
     const newState = await updateCharacterState(userId, charId, {
       mood: (result.mood as MoodType) || "calm",
@@ -123,6 +155,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       userMessage: userMsg,
       characterMessage: charMsg,
+      imageMessage,
       state: newState,
       moodChanged: result.moodChanged,
       moodLabel: result.moodLabel,
