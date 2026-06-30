@@ -170,7 +170,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   };
 
   // 随机选择测试角色
-  const testCharacters = ["lin-ye", "shen-mo", "shu-ting", "gu-ran"];
+  const testCharacters = ["xiao-xiao", "lin-ye", "shen-mo", "shu-ting", "gu-ran"];
 
   // 生成图像（自动触发）
   const generateImage = async (scene?: string) => {
@@ -761,7 +761,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     if (generatingImage) return;
 
     // 可用的角色列表（暂时硬编码，后续可以从 API 获取）
-    const availableCharacters = ["lin-ye", "shen-mo", "shu-ting", "gu-ran"];
+    const availableCharacters = ["xiao-xiao", "lin-ye", "shen-mo", "shu-ting", "gu-ran"];
     const testCharacterId = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
 
     setGeneratingImage(true);

@@ -5,6 +5,7 @@
  */
 
 // 按顺序导入，触发注册
+import "./characters/xiao-xiao";
 import "./characters/lin-ye";
 import "./characters/shen-mo";
 import "./characters/shu-ting";

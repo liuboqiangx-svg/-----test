@@ -20,7 +20,7 @@ const ALLOWED_SIZES: ImageSize[] = ["2K", "4K"];
 /**
  * 允许的角色 ID
  */
-const ALLOWED_CHARACTERS = ["lin-ye", "shen-mo", "shu-ting", "gu-ran"];
+const ALLOWED_CHARACTERS = ["xiao-xiao", "lin-ye", "shen-mo", "shu-ting", "gu-ran"];
 
 /**
  * POST /api/image/character
