@@ -63,6 +63,8 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const progressBarRefs = useRef<Record<string, HTMLDivElement | null>>({});
   // 语音错误提示
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  // 快捷回复栏显示状态
+  const [showQuickReplies, setShowQuickReplies] = useState(true);
   // 语音消息状态管理
   const [voiceStates, setVoiceStates] = useState<Record<string, VoiceState>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -205,63 +207,9 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
 
   // 发送消息
   const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-
-    const userMessage = input.trim();
-    setInput("");
-    setLoading(true);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-device-id": deviceIdRef.current,
-        },
-        body: JSON.stringify({
-          content: userMessage,
-          characterId: character?.id,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.userMessage && data.characterMessage) {
-        setMessages((prev) => [...prev, data.userMessage, data.characterMessage]);
-
-        // 检查情绪是否变化
-        if (data.state && data.state.mood !== lastMood) {
-          setMoodChanged(true);
-          setLastMood(data.state.mood);
-          setTimeout(() => setMoodChanged(false), 2000);
-        }
-
-        // 更新状态
-        if (data.state) {
-          setState(data.state);
-          onStateChange?.(data.state);
-        }
-
-        // 检查是否触发图像生成
-        if (shouldGenerateImage(userMessage) && !generatingImage) {
-          // 从用户消息推断场景
-          let scene = "beach";
-          if (userMessage.includes("海边") || userMessage.includes("沙滩")) scene = "beach";
-          else if (userMessage.includes("爬山") || userMessage.includes("山")) scene = "mountain";
-          else if (userMessage.includes("咖啡")) scene = "cafe";
-          else if (userMessage.includes("日落") || userMessage.includes("黄昏")) scene = "sunset";
-          else if (userMessage.includes("家里") || userMessage.includes("在家")) scene = "home";
-
-          // 延迟1秒后生成，让聊天更自然
-          setTimeout(() => generateImage(scene), 1000);
-        }
-      }
-    } catch (error) {
-      console.error("发送失败:", error);
-      setInput(userMessage); // 恢复输入
-    } finally {
-      setLoading(false);
-      inputRef.current?.focus();
-    }
+    const text = input.trim();
+    if (!text || loading) return;
+    await sendMessageWithText(text);
   };
 
   // 回车发送
@@ -717,6 +665,79 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     ));
   };
 
+  // 快捷回复列表
+  const quickReplies = [
+    { emoji: "☀️", label: "早安", text: "早安呀～今天也要元气满满！" },
+    { emoji: "🌙", label: "晚安", text: "晚安，做个好梦～" },
+    { emoji: "💭", label: "在干嘛", text: "在干嘛呢？" },
+    { emoji: "🍚", label: "吃了吗", text: "吃了吗？" },
+    { emoji: "🤗", label: "抱抱", text: "要抱抱～" },
+    { emoji: "❤️", label: "想你", text: "想你了" },
+  ];
+
+  // 发送快捷回复
+  const sendQuickReply = async (text: string) => {
+    if (loading) return;
+    setInput(text);
+    // 使用 setTimeout 确保 input 已更新（实际上直接调用 sendMessage 也可以，因为这里需要立刻发送）
+    // 更好的方式是直接复用 sendMessage 逻辑
+    await sendMessageWithText(text);
+  };
+
+  // 发送指定文本的消息
+  const sendMessageWithText = async (text: string) => {
+    if (!text.trim() || loading) return;
+
+    setInput("");
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-device-id": deviceIdRef.current,
+        },
+        body: JSON.stringify({
+          content: text,
+          characterId: character?.id,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.userMessage && data.characterMessage) {
+        setMessages((prev) => [...prev, data.userMessage, data.characterMessage]);
+
+        if (data.state && data.state.mood !== lastMood) {
+          setMoodChanged(true);
+          setLastMood(data.state.mood);
+          setTimeout(() => setMoodChanged(false), 2000);
+        }
+
+        if (data.state) {
+          setState(data.state);
+          onStateChange?.(data.state);
+        }
+
+        if (shouldGenerateImage(text) && !generatingImage) {
+          let scene = "beach";
+          if (text.includes("海边") || text.includes("沙滩")) scene = "beach";
+          else if (text.includes("爬山") || text.includes("山")) scene = "mountain";
+          else if (text.includes("咖啡")) scene = "cafe";
+          else if (text.includes("日落") || text.includes("黄昏")) scene = "sunset";
+          else if (text.includes("家里") || text.includes("在家")) scene = "home";
+          setTimeout(() => generateImage(scene), 1000);
+        }
+      }
+    } catch (error) {
+      console.error("发送失败:", error);
+      setInput(text);
+    } finally {
+      setLoading(false);
+      inputRef.current?.focus();
+    }
+  };
+
   // 测试图像生成
   const testImageGeneration = async () => {
     if (generatingImage) return;
@@ -916,6 +937,35 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
         </div>
       )}
 
+      {/* 快捷回复栏 */}
+      {showQuickReplies && (
+        <div className="bg-white/80 backdrop-blur-md border-t border-orange-100 px-4 py-2 twilight-form">
+          <div className="flex items-center gap-2 max-w-3xl mx-auto overflow-x-auto scrollbar-hide">
+            <span className="text-xs text-amber-500 whitespace-nowrap">快捷回复:</span>
+            {quickReplies.map((qr) => (
+              <button
+                key={qr.label}
+                onClick={() => {
+                  sendQuickReply(qr.text);
+                  setShowQuickReplies(false);
+                }}
+                disabled={loading}
+                className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-amber-700 rounded-full text-sm whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>{qr.emoji}</span>
+                <span>{qr.label}</span>
+              </button>
+            ))}
+            <button
+              onClick={() => setShowQuickReplies(false)}
+              className="text-xs text-amber-400 hover:text-amber-600 whitespace-nowrap px-2"
+            >
+              收起
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 输入区域 */}
       <footer className="twilight-header-glass px-4 py-3">
         <div className="flex items-end gap-3 max-w-3xl mx-auto">
@@ -976,11 +1026,20 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
           </button>
         </div>
 
-        <p className="text-center text-xs text-amber-600 mt-2 max-w-3xl mx-auto">
-          {mockMode
-            ? "💡 当前为演示模式，可配置 OPENAI_API_KEY 使用真实 AI"
-            : "✨ Powered by AI"}
-        </p>
+        <div className="flex items-center justify-between max-w-3xl mx-auto mt-2">
+          <button
+            onClick={() => setShowQuickReplies(true)}
+            className={`text-xs transition-colors ${showQuickReplies ? 'text-amber-300 cursor-default' : 'text-amber-600 hover:text-amber-800'}`}
+            disabled={showQuickReplies}
+          >
+            {showQuickReplies ? '快捷回复已展开' : '➕ 快捷回复'}
+          </button>
+          <p className="text-center text-xs text-amber-600">
+            {mockMode
+              ? "💡 当前为演示模式，可配置 OPENAI_API_KEY 使用真实 AI"
+              : "✨ Powered by AI"}
+          </p>
+        </div>
       </footer>
 
       {/* 图片预览弹窗 */}
