@@ -31,6 +31,8 @@ const VOICE_MAP: Record<string, string> = {
   "zh-CN-YunxiNeural": "zh-CN-YunxiNeural",
   "zh-CN-YunyangNeural": "zh-CN-YunyangNeural",
   "zh-CN-XiaoyiNeural": "zh-CN-XiaoyiNeural",
+  "zh-CN-XiaoxuanNeural": "zh-CN-XiaoxuanNeural",
+  "zh-CN-XiaobaiNeural": "zh-CN-XiaobaiNeural",
 };
 
 /**

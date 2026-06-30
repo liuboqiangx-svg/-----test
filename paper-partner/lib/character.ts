@@ -14,33 +14,34 @@ export interface CharacterVoiceConfig {
 
 /**
  * 角色音色映射
+ * 根据角色性格选择合适的音色
  */
 export const CHARACTER_VOICE_MAP: Record<string, CharacterVoiceConfig> = {
-  // 晓晓 - 温柔细腻
+  // 晓晓 - 清冷内敛，温柔但克制
   "lu-chen-001": {
     voiceId: "zh-CN-XiaoxiaoNeural",
-    speed: 1.0,
-    voiceName: "晓晓（温柔女声）",
+    speed: 0.9,
+    voiceName: "晓晓（温柔克制）",
   },
-  // 林野 - 阳光直爽
+  // 林野 - 阳光直爽，活泼跳跃
   "lin-ye": {
     voiceId: "zh-CN-XiaoyiNeural",
-    speed: 1.1,
+    speed: 1.15,
     voiceName: "小艺（活泼女声）",
   },
-  // 沈墨 - 知性内敛
+  // 沈墨 - 知性内敛，简洁有力
   "shen-mo": {
-    voiceId: "zh-CN-XiaoxiaoNeural",
-    speed: 0.95,
-    voiceName: "晓晓（知性女声）",
+    voiceId: "zh-CN-XiaoxuanNeural",
+    speed: 0.85,
+    voiceName: "晓璇（知性女声）",
   },
-  // 舒婷 - 知性撩人
+  // 舒婷 - 知性撩人，优雅带撩
   "shu-ting": {
-    voiceId: "zh-CN-XiaoxiaoNeural",
-    speed: 0.9,
-    voiceName: "晓晓（撩人女声）",
+    voiceId: "zh-CN-XiaoxuanNeural",
+    speed: 0.95,
+    voiceName: "晓璇（优雅女声）",
   },
-  // 顾燃 - 阳光直球
+  // 顾燃 - 阳光直球，有点痞
   "gu-ran": {
     voiceId: "zh-CN-YunxiNeural",
     speed: 1.05,
