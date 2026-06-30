@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { formatDistanceToNow, isToday, isYesterday, format, differenceInMinutes } from "date-fns";
 import { zhCN } from "date-fns/locale";
-import { Send, Sparkles, Loader2, Mic, Image, Heart, Zap, Volume2, Play, Pause } from "lucide-react";
+import { Send, Sparkles, Loader2, Mic, Image, Heart, Zap, Volume2, Play, Pause, X, ZoomIn, ZoomOut, RotateCcw, Copy, Trash2, ChevronDown } from "lucide-react";
 import type { Message, CharacterProfile, CharacterState, MoodType } from "@/types";
 import { MOOD_LABELS, MOOD_EMOJIS } from "@/types";
 import { getCharacterVoiceConfig, DEFAULT_CHARACTER } from "@/lib/character";
@@ -50,6 +50,19 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const [moodChanged, setMoodChanged] = useState(false);
   const [lastMood, setLastMood] = useState<string>("");
   const [generatingImage, setGeneratingImage] = useState(false);
+  // 图片预览状态
+  const [previewImage, setPreviewImage] = useState<{ url: string; alt: string } | null>(null);
+  const [previewScale, setPreviewScale] = useState(1);
+  // 长按菜单状态
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; messageId: string; content: string } | null>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 语音进度拖动状态
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragProgress, setDragProgress] = useState(0);
+  const [activeDragMsgId, setActiveDragMsgId] = useState<string | null>(null);
+  const progressBarRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  // 语音错误提示
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   // 语音消息状态管理
   const [voiceStates, setVoiceStates] = useState<Record<string, VoiceState>>({});
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -116,6 +129,15 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   useEffect(() => {
     initChat();
   }, [initChat]);
+
+  // 点击其他区域关闭长按菜单
+  useEffect(() => {
+    const handleClick = () => setContextMenu(null);
+    if (contextMenu) {
+      document.addEventListener('click', handleClick);
+      return () => document.removeEventListener('click', handleClick);
+    }
+  }, [contextMenu]);
 
   // 滚动到底部
   useEffect(() => {
@@ -359,7 +381,20 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
           [msg.id]: { ...prev[msg.id], isGenerating: false, isPlaying: true }
         }));
       } else {
-        console.error("语音生成失败:", data.error);
+        // 解析错误信息
+        let errorMessage = "语音生成失败，请稍后重试";
+        if (data.error) {
+          if (typeof data.error === 'string') {
+            errorMessage = data.error;
+          } else if (data.error.message) {
+            errorMessage = data.error.message;
+          } else if (data.error.code) {
+            errorMessage = `错误: ${data.error.code}`;
+          }
+        }
+        console.error("语音生成失败:", errorMessage, data.error);
+        setVoiceError(errorMessage);
+        setTimeout(() => setVoiceError(null), 3000); // 3秒后自动消失
         setVoiceStates(prev => ({
           ...prev,
           [msg.id]: { ...prev[msg.id], isGenerating: false }
@@ -367,6 +402,8 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
       }
     } catch (error) {
       console.error("播放语音错误:", error);
+      setVoiceError("语音播放出错，请稍后重试");
+      setTimeout(() => setVoiceError(null), 3000);
       setVoiceStates(prev => ({
         ...prev,
         [msg.id]: { ...prev[msg.id], isGenerating: false }
@@ -387,6 +424,104 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
         [currentVoiceIdRef.current!]: { ...prev[currentVoiceIdRef.current!], isPlaying: false, progress: 0 }
       }));
       currentVoiceIdRef.current = null;
+    }
+  };
+
+  // 格式化时间 (秒 -> MM:SS)
+  const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // 处理进度条拖动开始
+  const handleProgressDragStart = (e: React.MouseEvent | React.TouchEvent, msgId: string) => {
+    e.stopPropagation();
+    setIsDragging(true);
+    setActiveDragMsgId(msgId);
+    setDragProgress(voiceStates[msgId]?.progress || 0);
+  };
+
+  // 处理进度条拖动中
+  const handleProgressDrag = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging || !activeDragMsgId || !progressBarRefs.current[activeDragMsgId]) return;
+    e.stopPropagation();
+
+    const barRef = progressBarRefs.current[activeDragMsgId];
+    const rect = barRef.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const newProgress = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    setDragProgress(newProgress);
+  };
+
+  // 处理进度条拖动结束
+  const handleProgressDragEnd = (e: React.MouseEvent | React.TouchEvent) => {
+    if (!isDragging || !activeDragMsgId || !progressBarRefs.current[activeDragMsgId] || !audioRef.current || !currentVoiceIdRef.current) {
+      setIsDragging(false);
+      setActiveDragMsgId(null);
+      return;
+    }
+    e.stopPropagation();
+
+    const barRef = progressBarRefs.current[activeDragMsgId];
+    const rect = barRef.getBoundingClientRect();
+    const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX;
+    const finalProgress = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+
+    // 跳转到指定位置
+    const newTime = (finalProgress / 100) * audioRef.current.duration;
+    audioRef.current.currentTime = newTime;
+
+    setVoiceStates(prev => ({
+      ...prev,
+      [activeDragMsgId]: { ...prev[activeDragMsgId], progress: finalProgress }
+    }));
+    setIsDragging(false);
+    setActiveDragMsgId(null);
+  };
+
+  // 长按开始
+  const handleLongPressStart = (e: React.TouchEvent | React.MouseEvent, msg: MessageWithImage) => {
+    e.preventDefault();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    longPressTimerRef.current = setTimeout(() => {
+      setContextMenu({ x: clientX, y: clientY, messageId: msg.id, content: msg.content });
+    }, 500);
+  };
+
+  // 长按取消
+  const handleLongPressEnd = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  // 复制消息
+  const copyMessage = async () => {
+    if (contextMenu) {
+      try {
+        await navigator.clipboard.writeText(contextMenu.content);
+      } catch {
+        // 降级方案
+        const textarea = document.createElement('textarea');
+        textarea.value = contextMenu.content;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setContextMenu(null);
+    }
+  };
+
+  // 删除消息
+  const deleteMessage = () => {
+    if (contextMenu) {
+      setMessages((prev) => prev.filter((m) => m.id !== contextMenu.messageId));
+      setContextMenu(null);
     }
   };
 
@@ -448,6 +583,21 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
                   ? "twilight-bubble-user"
                   : "twilight-bubble-bot"
               }`}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setContextMenu({ x: e.clientX, y: e.clientY, messageId: msg.id, content: msg.content });
+              }}
+              onTouchStart={(e) => handleLongPressStart(e, msg)}
+              onTouchEnd={handleLongPressEnd}
+              onTouchMove={handleLongPressEnd}
+              onMouseDown={(e) => {
+                // PC端长按 (按住一段时间)
+                longPressTimerRef.current = setTimeout(() => {
+                  setContextMenu({ x: e.clientX, y: e.clientY, messageId: msg.id, content: msg.content });
+                }, 500);
+              }}
+              onMouseUp={handleLongPressEnd}
+              onMouseLeave={handleLongPressEnd}
             >
               {/* 图片消息 */}
               {msg.type === "image" && msg.media_url && (
@@ -455,8 +605,12 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
                   <img
                     src={msg.media_url}
                     alt="生成的图片"
-                    className="rounded-lg max-w-full max-h-80 object-contain"
+                    className="rounded-lg max-w-full max-h-80 object-contain cursor-zoom-in hover:opacity-90 transition-opacity"
                     loading="lazy"
+                    onClick={() => {
+                      setPreviewImage({ url: msg.media_url!, alt: msg.content || "图片预览" });
+                      setPreviewScale(1);
+                    }}
                   />
                 </div>
               )}
@@ -465,10 +619,9 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
               {msg.role === "character" && (
                 <div className="mt-2">
                   <div
-                    onClick={() => playVoice(msg)}
                     className="twilight-voice-bubble py-2 px-3 cursor-pointer"
-                    title={voiceStates[msg.id]?.isPlaying ? "暂停" : "播放语音"}
                   >
+                    {/* 播放/暂停按钮 */}
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
@@ -488,27 +641,61 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
                         <Play className="w-3 h-3 ml-0.5" />
                       )}
                     </div>
-                    {voiceStates[msg.id]?.isPlaying ? (
-                      <div className="flex items-center gap-0.5 flex-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
+
+                    {/* 进度条区域 */}
+                    <div className="flex-1 flex flex-col gap-1">
+                      {/* 可拖动的进度条 */}
+                      <div
+                        ref={(el) => { progressBarRefs.current[msg.id] = el; }}
+                        className="twilight-progress-bar cursor-pointer relative"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // 点击跳转
+                          if (audioRef.current && currentVoiceIdRef.current === msg.id) {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            const clickProgress = ((e.clientX - rect.left) / rect.width) * 100;
+                            audioRef.current.currentTime = (clickProgress / 100) * audioRef.current.duration;
+                          }
+                        }}
+                        onMouseDown={(e) => handleProgressDragStart(e, msg.id)}
+                        onMouseMove={handleProgressDrag}
+                        onMouseUp={handleProgressDragEnd}
+                        onMouseLeave={handleProgressDragEnd}
+                        onTouchStart={(e) => handleProgressDragStart(e, msg.id)}
+                        onTouchMove={handleProgressDrag}
+                        onTouchEnd={handleProgressDragEnd}
+                      >
+                        <div
+                          className="twilight-progress-fill"
+                          style={{
+                            width: `${isDragging && activeDragMsgId === msg.id ? dragProgress : (voiceStates[msg.id]?.progress || 0)}%`
+                          }}
+                        />
+                        {/* 拖动时的滑块 */}
+                        {isDragging && activeDragMsgId === msg.id && (
                           <div
-                            key={i}
-                            className="twilight-wave-bar"
-                            style={{ animationDelay: `${i * 0.1}s` }}
+                            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-orange-500 rounded-full shadow-md"
+                            style={{ left: `calc(${dragProgress}% - 6px)` }}
                           />
-                        ))}
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex-1 h-4 flex items-center">
-                        <div className="twilight-progress-bar flex-1">
-                          <div
-                            className="twilight-progress-fill"
-                            style={{ width: `${voiceStates[msg.id]?.progress || 0}%` }}
-                          />
-                        </div>
+
+                      {/* 时间显示 */}
+                      <div className="flex justify-between text-xs twilight-voice-time">
+                        <span>
+                          {isDragging && activeDragMsgId === msg.id
+                            ? formatTime((dragProgress / 100) * (audioRef.current?.duration || 0))
+                            : voiceStates[msg.id]?.isPlaying
+                              ? formatTime((voiceStates[msg.id]?.progress || 0) / 100 * (audioRef.current?.duration || 0))
+                              : "0:00"
+                          }
+                        </span>
+                        <span>{formatTime(voiceStates[msg.id]?.duration || 0)}</span>
                       </div>
-                    )}
-                    <span className="twilight-voice-time text-xs whitespace-nowrap">
+                    </div>
+
+                    {/* 状态文字 */}
+                    <span className="twilight-voice-time text-xs whitespace-nowrap ml-2">
                       {voiceStates[msg.id]?.isGenerating ? "生成中..." : voiceStates[msg.id]?.isPlaying ? "播放中" : "听语音"}
                     </span>
                   </div>
@@ -663,6 +850,13 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
         </div>
       )}
 
+      {/* 语音错误提示 */}
+      {voiceError && (
+        <div className="bg-red-500 px-4 py-2 text-center text-sm text-white animate-pulse flex items-center justify-center gap-2">
+          <span>🔔 {voiceError}</span>
+        </div>
+      )}
+
       {/* 消息列表 */}
       <main className="flex-1 overflow-y-auto px-4 py-6">
         <div className="max-w-3xl mx-auto space-y-4">
@@ -788,6 +982,111 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
             : "✨ Powered by AI"}
         </p>
       </footer>
+
+      {/* 图片预览弹窗 */}
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => {
+            setPreviewImage(null);
+            setPreviewScale(1);
+          }}
+        >
+          {/* 操作按钮 */}
+          <div className="absolute top-4 right-4 flex gap-2 z-10">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewScale((s) => Math.max(0.5, s - 0.25));
+              }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="缩小"
+            >
+              <ZoomOut className="w-5 h-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewScale((s) => Math.min(3, s + 0.25));
+              }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="放大"
+            >
+              <ZoomIn className="w-5 h-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewScale(1);
+              }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="重置"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setPreviewImage(null);
+                setPreviewScale(1);
+              }}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors"
+              title="关闭"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* 图片 */}
+          <img
+            src={previewImage.url}
+            alt={previewImage.alt}
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-200"
+            style={{ transform: `scale(${previewScale})` }}
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          {/* 缩放提示 */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/20 rounded-full text-white text-sm">
+            {Math.round(previewScale * 100)}%
+          </div>
+        </div>
+      )}
+
+      {/* 长按菜单弹窗 */}
+      {contextMenu && (
+        <>
+          {/* 遮罩层 */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setContextMenu(null)}
+          />
+          {/* 菜单 */}
+          <div
+            className="fixed z-50 bg-white rounded-xl shadow-2xl overflow-hidden"
+            style={{
+              left: Math.min(contextMenu.x, window.innerWidth - 160),
+              top: Math.min(contextMenu.y, window.innerHeight - 120),
+            }}
+          >
+            <button
+              onClick={copyMessage}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+            >
+              <Copy className="w-5 h-5 text-gray-500" />
+              <span className="text-gray-700">复制</span>
+            </button>
+            <div className="h-px bg-gray-100" />
+            <button
+              onClick={deleteMessage}
+              className="flex items-center gap-3 w-full px-4 py-3 hover:bg-red-50 transition-colors text-left"
+            >
+              <Trash2 className="w-5 h-5 text-red-500" />
+              <span className="text-red-500">删除</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
