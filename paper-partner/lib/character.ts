@@ -187,7 +187,7 @@ export const ALL_CHARACTERS: CharacterProfile[] = [
     display_name: "舒婷",
     age: 27,
     occupation: "职场精英",
-    avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=ShuTing&backgroundColor=d1d4f9",
+    avatar_url: "/avatars/舒婷.jpeg",
     sticker_url: "https://api.dicebear.com/7.x/fun-emoji/svg?seed=ShuTing",
     personality: [
       "知性优雅，情商高",
