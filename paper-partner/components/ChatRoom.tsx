@@ -67,6 +67,8 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
   const [showQuickReplies, setShowQuickReplies] = useState(true);
   // 语音消息状态管理
   const [voiceStates, setVoiceStates] = useState<Record<string, VoiceState>>({});
+  // 语音消息展开状态（显示文字）
+  const [expandedVoiceIds, setExpandedVoiceIds] = useState<Set<string>>(new Set());
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const currentVoiceIdRef = useRef<string | null>(null);
   const autoPlayNextRef = useRef(true);
@@ -559,12 +561,11 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
               />
             )}
 
+            {/* 文字消息 / 语音消息 */}
             <div
-              className={`max-w-[75%] px-4 py-3 ${
-                msg.role === "user"
-                  ? "twilight-bubble-user"
-                  : "twilight-bubble-bot"
-              }`}
+              className={`max-w-[75%] ${
+                msg.role === "user" ? "twilight-bubble-user" : "twilight-bubble-bot"
+              } ${msg.type === "voice" ? "px-2 py-2" : "px-4 py-3"}`}
               onContextMenu={(e) => {
                 e.preventDefault();
                 setContextMenu({ x: e.clientX, y: e.clientY, messageId: msg.id, content: msg.content });
@@ -596,93 +597,40 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
                   />
                 </div>
               )}
-              <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-              {/* 语音播放按钮（仅角色消息显示） */}
-              {msg.role === "character" && (
-                <div className="mt-2">
-                  <div
-                    className="twilight-voice-bubble py-2 px-3 cursor-pointer"
-                  >
-                    {/* 播放/暂停按钮 */}
-                    <div
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (voiceStates[msg.id]?.isPlaying) {
-                          pauseVoice();
+
+              {/* 语音消息（类似微信语音） */}
+              {msg.type === "voice" && msg.role === "character" && (
+                <VoiceMessageBubble msg={msg} voiceStates={voiceStates} />
+              )}
+
+              {/* 文字消息（voice类型不显示文字，除非用户展开） */}
+              {(msg.type !== "voice" || (msg.type === "voice" && expandedVoiceIds.has(msg.id))) && (
+                <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+              )}
+
+              {/* 语音消息展开按钮 */}
+              {msg.type === "voice" && msg.role === "character" && (
+                <div className="flex justify-end mt-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExpandedVoiceIds(prev => {
+                        const next = new Set(prev);
+                        if (next.has(msg.id)) {
+                          next.delete(msg.id);
                         } else {
-                          playVoice(msg);
+                          next.add(msg.id);
                         }
-                      }}
-                      className="twilight-play-btn w-8 h-8 cursor-pointer"
-                    >
-                      {voiceStates[msg.id]?.isGenerating ? (
-                        <Loader2 className="w-3 h-3 twilight-spin" />
-                      ) : voiceStates[msg.id]?.isPlaying ? (
-                        <Pause className="w-3 h-3" />
-                      ) : (
-                        <Play className="w-3 h-3 ml-0.5" />
-                      )}
-                    </div>
-
-                    {/* 进度条区域 */}
-                    <div className="flex-1 flex flex-col gap-1">
-                      {/* 可拖动的进度条 */}
-                      <div
-                        ref={(el) => { progressBarRefs.current[msg.id] = el; }}
-                        className="twilight-progress-bar cursor-pointer relative"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          // 点击跳转
-                          if (audioRef.current && currentVoiceIdRef.current === msg.id) {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const clickProgress = ((e.clientX - rect.left) / rect.width) * 100;
-                            audioRef.current.currentTime = (clickProgress / 100) * audioRef.current.duration;
-                          }
-                        }}
-                        onMouseDown={(e) => handleProgressDragStart(e, msg.id)}
-                        onMouseMove={handleProgressDrag}
-                        onMouseUp={handleProgressDragEnd}
-                        onMouseLeave={handleProgressDragEnd}
-                        onTouchStart={(e) => handleProgressDragStart(e, msg.id)}
-                        onTouchMove={handleProgressDrag}
-                        onTouchEnd={handleProgressDragEnd}
-                      >
-                        <div
-                          className="twilight-progress-fill"
-                          style={{
-                            width: `${isDragging && activeDragMsgId === msg.id ? dragProgress : (voiceStates[msg.id]?.progress || 0)}%`
-                          }}
-                        />
-                        {/* 拖动时的滑块 */}
-                        {isDragging && activeDragMsgId === msg.id && (
-                          <div
-                            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-orange-500 rounded-full shadow-md"
-                            style={{ left: `calc(${dragProgress}% - 6px)` }}
-                          />
-                        )}
-                      </div>
-
-                      {/* 时间显示 */}
-                      <div className="flex justify-between text-xs twilight-voice-time">
-                        <span>
-                          {isDragging && activeDragMsgId === msg.id
-                            ? formatTime((dragProgress / 100) * (audioRef.current?.duration || 0))
-                            : voiceStates[msg.id]?.isPlaying
-                              ? formatTime((voiceStates[msg.id]?.progress || 0) / 100 * (audioRef.current?.duration || 0))
-                              : "0:00"
-                          }
-                        </span>
-                        <span>{formatTime(voiceStates[msg.id]?.duration || 0)}</span>
-                      </div>
-                    </div>
-
-                    {/* 状态文字 */}
-                    <span className="twilight-voice-time text-xs whitespace-nowrap ml-2">
-                      {voiceStates[msg.id]?.isGenerating ? "生成中..." : voiceStates[msg.id]?.isPlaying ? "播放中" : "听语音"}
-                    </span>
-                  </div>
+                        return next;
+                      });
+                    }}
+                    className="text-xs text-amber-600 hover:underline"
+                  >
+                    {expandedVoiceIds.has(msg.id) ? "收起" : "显示文字"}
+                  </button>
                 </div>
               )}
+
               <p className={`text-xs mt-1 ${msg.role === "user" ? "text-orange-100" : "text-amber-600"}`}>
                 {formatDistanceToNow(new Date(msg.created_at), { addSuffix: false, locale: zhCN })}
               </p>
@@ -756,7 +704,27 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
       const data = await res.json();
       if (data.characterMessage) {
         // 3. API 返回后添加角色消息
-        setMessages((prev) => [...prev, data.characterMessage]);
+        let newCharMsg = data.characterMessage;
+
+        // 4. 检测是否触发语音，触发时消息类型改为 voice
+        if (data.state) {
+          const { shouldSpeak } = await import("@/lib/voice/trigger");
+          const currentMood = data.state.mood || "calm";
+          if (shouldSpeak(text, currentMood)) {
+            // 触发语音：消息类型改为 voice
+            newCharMsg = { ...newCharMsg, type: "voice" as const };
+            // 添加消息后再播放语音
+            setMessages((prev) => [...prev, newCharMsg]);
+            setTimeout(() => {
+              playVoice(newCharMsg, true); // 自动播放
+            }, 300);
+          } else {
+            // 不触发语音：正常添加文字消息
+            setMessages((prev) => [...prev, newCharMsg]);
+          }
+        } else {
+          setMessages((prev) => [...prev, newCharMsg]);
+        }
 
         if (data.state && data.state.mood !== lastMood) {
           setMoodChanged(true);
@@ -846,6 +814,55 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     { emoji: "🥺", label: "撒娇" },
     { emoji: "😠", label: "生气" },
   ];
+
+  // 语音消息气泡组件（类似微信语音）
+  const VoiceMessageBubble = ({ msg, voiceStates }: { msg: MessageWithImage; voiceStates: Record<string, VoiceState> }) => {
+    const voiceState = voiceStates[msg.id];
+    const isGenerating = voiceState?.isGenerating;
+    const isPlaying = voiceState?.isPlaying;
+    const duration = voiceState?.duration || 0;
+
+    return (
+      <div className="flex items-center gap-3 py-1 min-w-[120px]">
+        {/* 播放/暂停按钮 */}
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            if (voiceStates[msg.id]?.isPlaying) {
+              pauseVoice();
+            } else {
+              playVoice(msg);
+            }
+          }}
+          className="twilight-play-btn w-10 h-10 rounded-full flex items-center justify-center cursor-pointer"
+        >
+          {isGenerating ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : isPlaying ? (
+            <Pause className="w-4 h-4" />
+          ) : (
+            <Play className="w-4 h-4 ml-0.5" />
+          )}
+        </div>
+
+        {/* 进度条 / 静态条 */}
+        <div className="flex-1 flex flex-col gap-1">
+          <div
+            className="h-1.5 bg-gray-300 rounded-full overflow-hidden"
+          >
+            <div
+              className="h-full bg-amber-500 rounded-full transition-all duration-100"
+              style={{ width: `${voiceState?.progress || 0}%` }}
+            />
+          </div>
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>{isPlaying ? `${formatTime((voiceState?.progress || 0) / 100 * duration)}` : "0:00"}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full twilight-gradient">
