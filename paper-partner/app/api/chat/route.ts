@@ -8,7 +8,7 @@ import {
   getCharacterState,
   updateCharacterState,
 } from "@/lib/db/index-drizzle";
-import { DEFAULT_CHARACTER } from "@/lib/character";
+import { DEFAULT_CHARACTER, getCharacterById } from "@/lib/character";
 import { generateCharacterReply, isMockMode } from "@/lib/llm";
 import { getMemoryPromptText } from "@/lib/memory";
 import { MoodType } from "@/types";
@@ -32,13 +32,16 @@ export async function GET(request: NextRequest) {
   const deviceId = request.headers.get("x-device-id") || "anonymous";
   const userId = deviceId;
 
+  // 获取当前角色配置
+  const characterConfig = getCharacterById(characterId) || DEFAULT_CHARACTER;
+
   const messages = await getMessages(userId, characterId, 100);
   const state = await getCharacterState(userId, characterId);
   await markMessagesAsRead(userId, characterId);
 
   return NextResponse.json({
     messages,
-    character: DEFAULT_CHARACTER,
+    character: characterConfig,
     state,
     mockMode: isMockMode(),
   });
@@ -59,6 +62,9 @@ export async function POST(request: NextRequest) {
     const userId = deviceId;
     const charId = characterId || DEFAULT_CHARACTER.id;
 
+    // 获取当前角色配置
+    const characterConfig = getCharacterById(charId) || DEFAULT_CHARACTER;
+
     // 保存用户消息
     const userMsg = await insertMessage({
       user_id: userId,
@@ -78,16 +84,16 @@ export async function POST(request: NextRequest) {
     const nickname =
       state
         ? undefined
-        : DEFAULT_CHARACTER.nicknames_for_user[
-            Math.floor(Math.random() * DEFAULT_CHARACTER.nicknames_for_user.length)
+        : characterConfig.nicknames_for_user[
+            Math.floor(Math.random() * characterConfig.nicknames_for_user.length)
           ];
 
-    // 生成角色回复（接入情绪系统）
+    // 生成角色回复（使用当前角色的配置）
     const result = await generateCharacterReply({
       userName: userId,
       characterId: charId,
-      characterName: DEFAULT_CHARACTER.display_name,
-      characterProfile: DEFAULT_CHARACTER.speech_style,
+      characterName: characterConfig.display_name,
+      characterProfile: characterConfig.speech_style,
       memories: [],
       history,
       currentMessage: content.trim(),
@@ -105,10 +111,10 @@ export async function POST(request: NextRequest) {
       type: "text",
     });
 
-    // 更新角色状态（包含情绪强度）
+    // 更新角色状态（使用当前角色的亲密度成长配置）
     const newState = await updateCharacterState(userId, charId, {
       mood: (result.mood as MoodType) || "calm",
-      intimacy: Math.min(100, (state?.intimacy || 10) + DEFAULT_CHARACTER.intimacy_growth.reply),
+      intimacy: Math.min(100, (state?.intimacy || 10) + characterConfig.intimacy_growth.reply),
       mood_intensity: result.intensity,
       last_message_at: new Date().toISOString(),
       next_proactive_at: new Date(Date.now() + 1000 * 60 * 20).toISOString(),

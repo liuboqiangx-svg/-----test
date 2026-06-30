@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { DEFAULT_CHARACTER } from "@/lib/character";
+import { buildSystemPrompt } from "@/lib/character-prompts";
 import { Memory, ReasoningResult, OpenRouterResponse, ApiErrorCode } from "@/types";
 import {
   EmotionEngine,
@@ -116,7 +117,7 @@ export async function generateCharacterReply(
     };
   }
 
-  // 构建 Prompt
+  // 构建 Prompt（使用角色人设库）
   const memoryText =
     options.memories.length > 0
       ? `\n\n关于用户的已知信息：\n${options.memories
@@ -124,25 +125,36 @@ export async function generateCharacterReply(
           .join("\n")}`
       : "";
 
-  const nickname = options.nickname || DEFAULT_CHARACTER.nicknames_for_user[0];
+  // 使用角色人设库构建完整 prompt
+  const systemPrompt = buildSystemPrompt(
+    options.characterId,
+    options.intimacy,
+    currentEmotion.current,
+    emotionPrompt
+  );
 
-  // 根据情绪状态调整回复风格
-  const moodStylePrompt = getMoodStylePrompt(currentEmotion.current, config.characterName);
+  // 调试日志
+  console.log(`[LLM Debug] characterId: ${options.characterId}`);
+  console.log(`[LLM Debug] systemPrompt:\n${systemPrompt}`);
 
-  const systemPrompt = `你是${options.characterName}，${options.characterProfile}
-${moodStylePrompt}
-当前亲密度：${options.intimacy}/100。${emotionPrompt}
-请用第一人称回复，语气自然、口语化，像在微信上聊天。
-回复控制在 50 字以内。${memoryText}`;
+  // 如果有用户记忆，追加到 prompt 末尾
+  const finalSystemPrompt = memoryText ? `${systemPrompt}${memoryText}` : systemPrompt;
 
   const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-    { role: "system", content: systemPrompt },
+    { role: "system", content: finalSystemPrompt },
     ...options.history.slice(-10).map((h) => ({
       role: h.role === "user" ? ("user" as const) : ("assistant" as const),
       content: h.content,
     })),
     { role: "user", content: options.currentMessage },
   ];
+
+  // 调试：打印发送给 LLM 的完整消息
+  console.log("[LLM Debug] === 完整消息 ===");
+  messages.forEach((m, i) => {
+    console.log(`[LLM Debug] [${i}] ${m.role}: ${String(m.content).substring(0, 500)}`);
+  });
+  console.log("[LLM Debug] ==================");
 
   const model = process.env.LLM_MODEL || "google/gemma-4-31b-it:free";
   logger.logRequestStart('chat.completions', model);
