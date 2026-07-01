@@ -156,65 +156,6 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     messagesRef.current = messages;
   }, [messages]);
 
-  // 图像触发关键词
-  const imageKeywords = [
-    "发图片", "发照片", "发张图片", "发张照片", "发个图",
-    "想看", "想看看", "看看你", "看看照片", "看看图片",
-    "你的照片", "你的图片", "给我看", "给我看看",
-    "长什么样", "长啥样", "发个自拍", "自拍看看",
-  ];
-
-  // 检测是否触发图像生成
-  const shouldGenerateImage = (message: string): boolean => {
-    const lower = message.toLowerCase();
-    return imageKeywords.some(keyword => lower.includes(keyword));
-  };
-
-  // 随机选择测试角色
-  const testCharacters = ["xiao-xiao", "lin-ye", "shen-mo", "shu-ting", "gu-ran"];
-
-  // 生成图像（自动触发）
-  const generateImage = async (scene?: string) => {
-    if (generatingImage) return;
-
-    const testCharacterId = testCharacters[Math.floor(Math.random() * testCharacters.length)];
-
-    setGeneratingImage(true);
-    try {
-      const res = await fetch("/api/image/character", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          characterId: testCharacterId,
-          emotion: state?.mood || "happy",
-          scene: scene || "beach",
-          size: "2K",
-        }),
-      });
-
-      const data = await res.json();
-      if (data.success && data.data?.url) {
-        // 添加图片消息
-        const imageMsg: MessageWithImage = {
-          id: `img-${Date.now()}`,
-          user_id: "character",
-          character_id: testCharacterId,
-          role: "character",
-          content: "给你看看~",
-          type: "image",
-          media_url: data.data.url,
-          is_read: false,
-          created_at: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, imageMsg]);
-      }
-    } catch (error) {
-      console.error("图像生成错误:", error);
-    } finally {
-      setGeneratingImage(false);
-    }
-  };
-
   // 发送消息
   const sendMessage = async () => {
     const text = input.trim();
@@ -748,14 +689,9 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
           onStateChange?.(data.state);
         }
 
-        if (shouldGenerateImage(text) && !generatingImage) {
-          let scene = "beach";
-          if (text.includes("海边") || text.includes("沙滩")) scene = "beach";
-          else if (text.includes("爬山") || text.includes("山")) scene = "mountain";
-          else if (text.includes("咖啡")) scene = "cafe";
-          else if (text.includes("日落") || text.includes("黄昏")) scene = "sunset";
-          else if (text.includes("家里") || text.includes("在家")) scene = "home";
-          setTimeout(() => generateImage(scene), 1000);
+        // 使用后端返回的图片消息（如果有）
+        if (data.imageMessage) {
+          setMessages((prev) => [...prev, data.imageMessage]);
         }
       }
     } catch (error) {
