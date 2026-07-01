@@ -67,7 +67,7 @@ export const ALL_CHARACTERS: CharacterProfile[] = [
     display_name: "晓晓",
     age: 26,
     occupation: "建筑设计师",
-    avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=XiaoXiao&backgroundColor=b6e3f4",
+    avatar_url: "/avatars/晓晓.jpeg",
     sticker_url: "https://api.dicebear.com/7.x/fun-emoji/svg?seed=XiaoXiao",
     personality: [
       "温柔细腻，会察言观色",
@@ -108,7 +108,7 @@ export const ALL_CHARACTERS: CharacterProfile[] = [
     display_name: "林野",
     age: 24,
     occupation: "健身博主/自由职业",
-    avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=LinYe&backgroundColor=ffdfbf",
+    avatar_url: "/avatars/林野.jpeg",
     sticker_url: "https://api.dicebear.com/7.x/fun-emoji/svg?seed=LinYe",
     personality: [
       "阳光开朗，充满活力",
@@ -148,7 +148,7 @@ export const ALL_CHARACTERS: CharacterProfile[] = [
     display_name: "沈墨",
     age: 28,
     occupation: "建筑师",
-    avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=ShenMo&backgroundColor=c0aede",
+    avatar_url: "/avatars/沈墨.jpeg",
     sticker_url: "https://api.dicebear.com/7.x/fun-emoji/svg?seed=ShenMo",
     personality: [
       "知性内敛，思维缜密",
@@ -229,7 +229,7 @@ export const ALL_CHARACTERS: CharacterProfile[] = [
     display_name: "顾燃",
     age: 25,
     occupation: "街头潮男/自由职业",
-    avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=GuRan&backgroundColor=ffd5dc",
+    avatar_url: "/avatars/顾燃.jpeg",
     sticker_url: "https://api.dicebear.com/7.x/fun-emoji/svg?seed=GuRan",
     personality: [
       "阳光直球，不藏着掖着",

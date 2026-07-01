@@ -22,19 +22,34 @@ export interface CharacterAvatar {
 /**
  * 角色头像列表
  * 路径相对于 public 目录
+ * 用于图生图时作为角色一致性参考
  */
 export const CHARACTER_AVATARS: CharacterAvatar[] = [
+  {
+    characterId: "lu-chen-001",
+    localPath: "/avatars/晓晓.jpeg",
+    mimeType: "image/jpeg",
+  },
+  {
+    characterId: "lin-ye",
+    localPath: "/avatars/林野.jpeg",
+    mimeType: "image/jpeg",
+  },
+  {
+    characterId: "shen-mo",
+    localPath: "/avatars/沈墨.jpeg",
+    mimeType: "image/jpeg",
+  },
   {
     characterId: "shu-ting",
     localPath: "/avatars/舒婷.jpeg",
     mimeType: "image/jpeg",
   },
-  // 其他角色头像配置（需要先生成头像）
-  // {
-  //   characterId: "lu-chen-001",
-  //   localPath: "/avatars/晓晓.png",
-  //   mimeType: "image/png",
-  // },
+  {
+    characterId: "gu-ran",
+    localPath: "/avatars/顾燃.jpeg",
+    mimeType: "image/jpeg",
+  },
 ];
 
 /**
