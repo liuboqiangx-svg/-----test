@@ -160,10 +160,20 @@ function validateRequest(body: unknown): {
     }
 
     for (const url of req.reference_images) {
-      if (typeof url !== "string" || !url.startsWith("http")) {
+      if (typeof url !== "string") {
         return {
           code: ERROR_CODES.VALIDATION_ERROR,
-          message: "reference_images 中的每一项必须是有效的 URL",
+          message: "reference_images 中的每一项必须是字符串",
+          type: "validation",
+        };
+      }
+      // 支持 http URL 或 data:base64 格式
+      const isValidUrl = url.startsWith("http://") || url.startsWith("https://");
+      const isValidBase64 = url.startsWith("data:image/");
+      if (!isValidUrl && !isValidBase64) {
+        return {
+          code: ERROR_CODES.VALIDATION_ERROR,
+          message: "reference_images 中的每一项必须是有效的 URL 或 Base64 图片",
           type: "validation",
         };
       }
