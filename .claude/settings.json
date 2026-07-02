@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git remote *)",
+      "Bash(git push *)",
+      "Bash(grep -E \"sk-[a-zA-Z0-9]{20,}\")",
+      "Bash(grep -E \"sk-or-v1-[a-zA-Z0-9]{30,}\")",
+      "Bash(grep -E \"sk-cd[a-z0-9]{20,}\")",
+      "Bash(git ls-files *)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(git commit -m 'chore: 完善gitignore配置，移除本地缓存和敏感文件 *)",
+      "Bash(ping -c 1 github.com)",
+      "Bash(mv paper-partner/.env.local paper-partner/.env.local.example paper-partner/.gitignore paper-partner/README.md paper-partner/CLAUDE.md .)",
+      "Bash(mv paper-partner/app paper-partner/components paper-partner/docs paper-partner/lib paper-partner/types paper-partner/scripts .)",
+      "Bash(mv paper-partner/public .)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm config *)",
+      "Bash(pnpm help *)",
+      "Bash(rm pnpm-workspace.yaml)",
+      "Bash(echo 'onlyBuiltDependencies: *)",
+      "Bash(pnpm --version)",
+      "Bash(cd \"/Users/gg/Desktop/代码学习/纸片人男友test\" && rm -f pnpm-workspace.yaml .npmrc && echo \"已删除配置文件\")",
+      "Bash(rm -f pnpm-lock.yaml)",
+      "Bash(rm -rf node_modules)",
+      "Bash(pnpm why *)",
+      "Bash(cd \"/Users/gg/Desktop/代码学习/纸片人男友test\" && rm pnpm-workspace.yaml && echo 'allowBuilds=true' > .npmrc && cat .npmrc)",
+      "Bash(echo 'esbuild: true *)",
+      "Bash(rm .npmrc)",
+      "Bash(pnpm approve-builds *)",
+      "Bash(cat ~/.pnpmfile.cjs)",
+      "Bash(cat .pnpmfile.cjs)",
+      "Bash(pnpm tsc *)",
+      "Bash(node -e \"console.log\\(require.resolve\\('./lib/llm/provider.ts'\\)\\)\")"
+    ],
+    "additionalDirectories": [
+      "/Users/gg/Desktop/代码学习/纸片人男友test"
+    ]
+  }
+}

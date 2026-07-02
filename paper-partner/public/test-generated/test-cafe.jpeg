@@ -1,1 +1,0 @@
-{"Code":"AuthorizationQueryParametersError","RequestId":"ab26074527e5b1726a4527e5-bf55b34-1wewBJ-GO-cb-tos-1az-front-azc-1","HostId":"tmTpocyYvkQUuNLyBAYccAThImpuRRwn","Message":"Query-string authentication version 4 requires the X-Tos-Algorithm, X-Tos-Credential, X-Tos-Signature, X-Tos-Date, X-Tos-SignedHeaders, and X-Tos-Expires parameters.","EC":"0002-00000029"}

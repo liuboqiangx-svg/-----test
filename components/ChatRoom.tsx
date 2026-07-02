@@ -373,7 +373,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     if (!isDragging || !activeDragMsgId || !progressBarRefs.current[activeDragMsgId]) return;
     e.stopPropagation();
 
-    const barRef = progressBarRefs.current[activeDragMsgId];
+    const barRef = progressBarRefs.current[activeDragMsgId]!;
     const rect = barRef.getBoundingClientRect();
     const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const newProgress = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
@@ -389,7 +389,7 @@ export default function ChatRoom({ onStateChange }: ChatRoomProps) {
     }
     e.stopPropagation();
 
-    const barRef = progressBarRefs.current[activeDragMsgId];
+    const barRef = progressBarRefs.current[activeDragMsgId]!;
     const rect = barRef.getBoundingClientRect();
     const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : e.clientX;
     const finalProgress = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));

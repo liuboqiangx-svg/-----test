@@ -49,7 +49,6 @@
 ### 2.2 项目结构
 
 ```
-paper-partner/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API 路由
 │   │   ├── chat/         # 对话接口 (GET 历史 / POST 发送)
@@ -57,12 +56,11 @@ paper-partner/
 │   │   └── state/        # 角色状态管理
 │   ├── layout.tsx        # 根布局
 │   └── page.tsx          # 首页
-├── components/
-│   └── ChatRoom.tsx      # 聊天界面组件
-├── lib/
+├── components/            # React 组件
+├── lib/                   # 业务逻辑
 │   ├── api/              # API 配置
 │   ├── character.ts      # 默认角色配置
-│   ├── db.ts             # 数据库操作
+│   ├── db/               # 数据库操作 (Drizzle ORM)
 │   ├── emotion.ts        # 情绪系统
 │   ├── emotions/         # 各角色情绪配置
 │   ├── image/            # 图像生成模块
@@ -70,13 +68,13 @@ paper-partner/
 │   │   ├── prompts/      # Prompt 库
 │   │   └── *.ts          # 核心服务
 │   ├── llm.ts            # OpenAI API 封装
-│   ├── memory.ts         # 记忆提取与管理
+│   ├── memory.ts          # 记忆提取与管理
 │   ├── proactive.ts      # 主动消息调度
-│   └── voice/            # 语音合成模块 (待开发)
-├── types/
-│   └── index.ts          # TypeScript 类型定义
-└── docs/                 # 项目文档
-    └── characters/       # 角色人设文档
+│   └── voice/            # 语音合成模块
+├── types/                 # TypeScript 类型定义
+├── docs/                  # 项目文档
+│   └── characters/        # 角色人设文档
+└── public/                # 静态资源
 ```
 
 ---

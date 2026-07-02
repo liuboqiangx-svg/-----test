@@ -10,7 +10,7 @@ import {
   ProviderConfig,
   ChatCompletionOptions,
   ChatCompletionResponse,
-} from "../provider";
+} from "./provider";
 import { ReasoningResult } from "@/types";
 
 /**

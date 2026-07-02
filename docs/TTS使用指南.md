@@ -25,8 +25,7 @@ docker run -d \
 ### 2. 启动 Next.js 开发服务器
 
 ```bash
-cd paper-partner
-npm run dev
+pnpm dev
 ```
 
 ---

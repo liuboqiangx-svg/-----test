@@ -9,11 +9,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 开发命令
 
 ```bash
-cd paper-partner
-npm run dev      # 启动开发服务器 (http://localhost:3000)
-npm run build    # 生产构建
-npm run start    # 启动生产服务器
-npm run lint     # 运行 ESLint 检查
+pnpm dev      # 启动开发服务器 (http://localhost:3000)
+pnpm build    # 生产构建
+pnpm start    # 启动生产服务器
+pnpm lint     # 运行 ESLint 检查
 ```
 
 ## 技术栈
@@ -22,7 +21,7 @@ npm run lint     # 运行 ESLint 检查
 |------|------|
 | 框架 | Next.js 16.2.9 (App Router) |
 | 语言 | TypeScript 5 |
-| 数据库 | SQLite (better-sqlite3, WAL 模式) |
+| 数据库 | PostgreSQL (Neon 云端) + Drizzle ORM |
 | AI | OpenAI SDK v6 |
 | 样式 | Tailwind CSS v4 |
 | UI 组件 | lucide-react |
@@ -30,7 +29,6 @@ npm run lint     # 运行 ESLint 检查
 ## 项目结构
 
 ```
-paper-partner/
 ├── app/                    # Next.js App Router
 │   ├── api/               # API 路由
 │   │   ├── chat/          # 对话接口 (GET 历史 / POST 发送)
@@ -38,16 +36,15 @@ paper-partner/
 │   │   └── state/         # 角色状态管理
 │   ├── layout.tsx         # 根布局
 │   └── page.tsx           # 首页
-├── components/
-│   └── ChatRoom.tsx       # 聊天界面组件 (use client)
-├── lib/
-│   ├── character.ts       # 默认角色配置 (陆沉)
-│   ├── db.ts              # SQLite 数据库操作
-│   ├── llm.ts             # OpenAI API 封装
-│   ├── memory.ts           # 记忆提取与管理
-│   └── proactive.ts       # 主动消息调度
-├── types/index.ts         # TypeScript 类型定义
-└── paper-partner.db      # SQLite 数据库文件
+├── components/             # React 组件
+├── lib/                    # 业务逻辑和工具
+├── types/                  # TypeScript 类型定义
+├── docs/                   # 项目文档
+├── public/                 # 静态资源
+├── drizzle.config.ts       # Drizzle ORM 配置
+├── next.config.ts          # Next.js 配置
+├── package.json            # 项目依赖
+└── tsconfig.json           # TypeScript 配置
 ```
 
 ## 数据库表结构
