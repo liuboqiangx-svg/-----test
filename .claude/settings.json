@@ -32,7 +32,8 @@
       "Bash(cat ~/.pnpmfile.cjs)",
       "Bash(cat .pnpmfile.cjs)",
       "Bash(pnpm tsc *)",
-      "Bash(node -e \"console.log\\(require.resolve\\('./lib/llm/provider.ts'\\)\\)\")"
+      "Bash(node -e \"console.log\\(require.resolve\\('./lib/llm/provider.ts'\\)\\)\")",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "/Users/gg/Desktop/代码学习/纸片人男友test"
