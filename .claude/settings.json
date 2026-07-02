@@ -36,7 +36,9 @@
       "Bash(git check-ignore *)",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://boyfriend-robot.vercel.app\")",
       "Bash(vercel logs *)",
-      "Bash(npx vercel *)"
+      "Bash(npx vercel *)",
+      "Bash(cat ~/.npmrc 2>/dev/null || echo \"无全局 .npmrc\")",
+      "Read(//Users/gg/**)"
     ],
     "additionalDirectories": [
       "/Users/gg/Desktop/代码学习/纸片人男友test"

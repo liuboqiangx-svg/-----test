@@ -139,13 +139,16 @@ export function createErrorFromFetch(error: Error, provider: string): LlmApiErro
     );
   }
 
-  // 网络错误
+  // 网络错误 - 添加详细信息
+  const errorMessage = error.message || 'Unknown network error';
+  console.error(`[Network Error Details] provider=${provider}, error=${errorMessage}, name=${error.name}, stack=${error.stack}`);
+
   return new LlmApiError(
     ApiErrorCode.NETWORK_ERROR,
     provider,
     '网络连接失败',
     undefined,
-    error.message
+    `${errorMessage} (${error.name})`
   );
 }
 
