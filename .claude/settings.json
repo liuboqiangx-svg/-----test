@@ -33,7 +33,10 @@
       "Bash(cat .pnpmfile.cjs)",
       "Bash(pnpm tsc *)",
       "Bash(node -e \"console.log\\(require.resolve\\('./lib/llm/provider.ts'\\)\\)\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" \"https://boyfriend-robot.vercel.app\")",
+      "Bash(vercel logs *)",
+      "Bash(npx vercel *)"
     ],
     "additionalDirectories": [
       "/Users/gg/Desktop/代码学习/纸片人男友test"

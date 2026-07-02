@@ -23,6 +23,7 @@ export class OpenAIProvider implements LLMProvider {
     this.client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL || "https://api.openai.com/v1",
+      timeout: config.timeout || 60000, // 60秒超时，适应 Vercel Serverless 环境
     });
     this.model = config.model || "gpt-4o-mini";
   }

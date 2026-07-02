@@ -25,6 +25,7 @@ export class DeepSeekProvider implements LLMProvider {
     this.client = new OpenAI({
       apiKey: config.apiKey,
       baseURL: config.baseURL || "https://api.deepseek.com/v1",
+      timeout: config.timeout || 60000, // 60秒超时，适应 Vercel Serverless 环境
     });
     this.model = config.model || "deepseek-v4-pro";
   }
